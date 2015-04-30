@@ -36,6 +36,12 @@ public class SearchActivity extends ActionBarActivity {
         actionBar.setDisplayShowTitleEnabled(true);
 
         Tab tab = actionBar.newTab()
+                .setIcon(R.drawable.ic_tab_wine)
+                .setTabListener(new TabListener<SearchLocationAndWineFragment>(
+                        this, "Wine", SearchLocationAndWineFragment.class));
+        actionBar.addTab(tab);
+
+        tab = actionBar.newTab()
                 .setIcon(R.drawable.ic_tab_location)
                 .setTabListener(new TabListener<SearchLocationFragment>(
                         this, "Location", SearchLocationFragment.class));
@@ -46,6 +52,7 @@ public class SearchActivity extends ActionBarActivity {
                 .setTabListener(new TabListener<SearchLocationAndWineFragment>(
                         this, "Location and Wine", SearchLocationAndWineFragment.class));
         actionBar.addTab(tab);
+;
     }
 
 
