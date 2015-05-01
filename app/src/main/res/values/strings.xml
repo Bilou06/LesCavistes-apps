@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">Les cavistes</string>
-    <string name="search_label">Trouvez votre vin</string>
+    <string name="search_label">Trouvez les cavistes près de chez vous</string>
 
-    <string name="query_where">Où ? Entrez une ville, une adresse</string>
+    <string name="query_where">Où ? Autour de votre position</string>
+    <string name="query_what">Quoi ? Tous les vins</string>
+
     <string name="button_send">></string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_search">Recherche</string>
@@ -10,4 +12,7 @@
     <string name="action_search">Chercher</string>
     <string name="hello_world">Hello world!</string>
     <string name="search_where_presentation">Rechercher les cavistes près de chez vous</string>
+    <string name="impossible_to_connect">Impossible de détecter votre localisation. Merci de vérifier vos paramètre GPS, etc.</string>
+    <string name="no_location_detected">Impossible de déterminer votre position, merci de saisir une adresse dans le champ de saisi.</string>
+    <string name="ununderstable_address">Impossible de trouver cette adresse, merci de présiser</string>
 </resources>

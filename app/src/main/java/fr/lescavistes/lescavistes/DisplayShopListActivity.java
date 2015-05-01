@@ -16,13 +16,19 @@ public class DisplayShopListActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-        String message = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
+        String where = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
+        String what = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
+        String lng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
+        String lat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
 
         TextView textView = new TextView(this);
         textView.setTextSize(40);
-        textView.setText(message);
+        textView.setText(where + '\n' + what + '\n' +lat+'\n'+lng);
 
         setContentView(textView);
+
+
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 

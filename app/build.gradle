@@ -19,12 +19,10 @@ android {
     }
 }
 
-apply plugin: 'com.android.application'
-
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'eu.the4thfloor.volley:com.android.volley:2015.02.02'
     compile 'com.google.android.gms:play-services:7.3.0'
+    compile 'eu.the4thfloor.volley:com.android.volley:2015.02.02'
 
 }
