@@ -10,8 +10,8 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
+//import android.support.v7.app.ActionBar;
+//import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,15 +21,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,8 +31,6 @@ public class SearchActivity extends ActionBarActivity implements
         ConnectionCallbacks, OnConnectionFailedListener {
 
     protected static final String TAG = "search-activity";
-
-    String URL = "http://192.168.1.78:8181/static/wineshops/style.css";
 
     public final static String WHERE_MESSAGE = "fr.lescavistes.lescavistes.WHERE_MESSAGE";
     public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
@@ -162,28 +151,7 @@ public class SearchActivity extends ActionBarActivity implements
      * Called when the user clicks the button
      */
     public void searchWhere(View view) {
-/*
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, URL, null, new Response.Listener<JSONObject>() {
 
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        String message = response.toString();
-                        go(message);
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-
-                    }
-                });
-
-
-        // Access the RequestQueue through your singleton class.
-        SingletonWebRequest.getInstance(this).addToRequestQueue(jsObjRequest);
-*/
         Intent intent = new Intent(this, DisplayShopListActivity.class);
 
         EditText editText = (EditText) findViewById(R.id.query_where);
