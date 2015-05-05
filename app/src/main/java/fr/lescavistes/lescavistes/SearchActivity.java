@@ -1,5 +1,6 @@
 package fr.lescavistes.lescavistes;
 
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -30,21 +31,18 @@ import java.util.Locale;
 public class SearchActivity extends ActionBarActivity implements
         ConnectionCallbacks, OnConnectionFailedListener {
 
-    protected static final String TAG = "search-activity";
-
     public final static String WHERE_MESSAGE = "fr.lescavistes.lescavistes.WHERE_MESSAGE";
     public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
     public final static String LAT_MESSAGE = "fr.lescavistes.lescavistes.LAT_MESSAGE";
     public final static String LNG_MESSAGE = "fr.lescavistes.lescavistes.LNG_MESSAGE";
-
+    protected static final String TAG = "search-activity";
     /**
      * Provides the entry point to Google Play services.
      */
     protected GoogleApiClient mGoogleApiClient;
     protected boolean mGoogleApiConnected = false;
 
-    //Transform address in latlng
-    Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+    Geocoder geocoder = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +50,17 @@ public class SearchActivity extends ActionBarActivity implements
         setContentView(R.layout.activity_search);
 
         buildGoogleApiClient();
+
+        //Transform address in latlng
+        if (MainApplication.isDebug()) {
+            try {
+                geocoder = new Geocoder(this, Locale.getDefault());
+            } catch (Exception e) {
+                geocoder = null;
+            }
+        } else {
+            geocoder = new Geocoder(this, Locale.getDefault());
+        }
 /*
         ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -177,20 +186,31 @@ public class SearchActivity extends ActionBarActivity implements
 
         } else {
             List<Address> addresses;
-            try {
-                addresses = geocoder.getFromLocationName(where, 1);
-            } catch (IOException e) {
-                Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
-                return;
-            }
-            if(addresses.size() > 0) {
-                String lat = String.valueOf(addresses.get(0).getLatitude());
-                String lng = String.valueOf(addresses.get(0).getLongitude());
-                intent.putExtra(LAT_MESSAGE, lat);
-                intent.putExtra(LNG_MESSAGE, lng);
+            if (geocoder==null) {
+                intent.putExtra(LAT_MESSAGE, "44");
+                intent.putExtra(LNG_MESSAGE, "3");
             } else {
-                Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
-                return;
+                try {
+                    addresses = geocoder.getFromLocationName(where, 1);
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                if (addresses.size() > 0) {
+                    String lat = String.valueOf(addresses.get(0).getLatitude());
+                    String lng = String.valueOf(addresses.get(0).getLongitude());
+                    intent.putExtra(LAT_MESSAGE, lat);
+                    intent.putExtra(LNG_MESSAGE, lng);
+                } else {
+                    if (MainApplication.isDebug()){
+                        intent.putExtra(LAT_MESSAGE, "44");
+                        intent.putExtra(LNG_MESSAGE, "3");
+                    } else {
+                        Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
             }
 
         }

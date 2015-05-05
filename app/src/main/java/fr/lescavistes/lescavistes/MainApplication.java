@@ -13,6 +13,7 @@ import com.android.volley.toolbox.Volley;
 public class MainApplication extends Application {
 
     private static MainApplication sInstance;
+    private static boolean DEBUG = true;
 
     private RequestQueue mRequestQueue;
 
@@ -32,4 +33,6 @@ public class MainApplication extends Application {
     public RequestQueue getRequestQueue() {
         return mRequestQueue;
     }
+
+    public static boolean isDebug() { return DEBUG; }
 }

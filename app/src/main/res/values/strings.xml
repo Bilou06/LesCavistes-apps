@@ -15,4 +15,6 @@
     <string name="impossible_to_connect">Impossible de détecter votre localisation. Merci de vérifier vos paramètre GPS, etc.</string>
     <string name="no_location_detected">Impossible de déterminer votre position, merci de saisir une adresse dans le champ de saisi.</string>
     <string name="ununderstable_address">Impossible de trouver cette adresse, merci de présiser</string>
+    <string name="shop_title">Cavistes</string>
+    <string name="icon_content_description">icon content description</string>
 </resources>
