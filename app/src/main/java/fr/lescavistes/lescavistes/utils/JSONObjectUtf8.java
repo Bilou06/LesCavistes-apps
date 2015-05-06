@@ -1,4 +1,4 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;

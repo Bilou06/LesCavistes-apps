@@ -1,4 +1,4 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.activities;
 
 
 import com.google.android.gms.common.ConnectionResult;
@@ -24,6 +24,10 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+
+import fr.lescavistes.lescavistes.MainApplication;
+import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 
 
 public class SearchActivity extends AppCompatActivity implements
@@ -59,28 +63,6 @@ public class SearchActivity extends AppCompatActivity implements
         } else {
             geocoder = new Geocoder(this, Locale.getDefault());
         }
-/*
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        actionBar.setDisplayShowTitleEnabled(true);
-
-        Tab tab = actionBar.newTab()
-                .setIcon(R.drawable.ic_tab_wine)
-                .setTabListener(new TabListener<SearchLocationAndWineFragment>(
-                        this, "Wine", SearchLocationAndWineFragment.class));
-        actionBar.addTab(tab);
-
-        tab = actionBar.newTab()
-                .setIcon(R.drawable.ic_tab_location)
-                .setTabListener(new TabListener<SearchLocationFragment>(
-                        this, "Location", SearchLocationFragment.class));
-        actionBar.addTab(tab);
-
-        tab = actionBar.newTab()
-                .setIcon(R.drawable.ic_tab_location_wine)
-                .setTabListener(new TabListener<SearchLocationAndWineFragment>(
-                        this, "Location and Wine", SearchLocationAndWineFragment.class));
-        actionBar.addTab(tab);*/
     }
 
     /**

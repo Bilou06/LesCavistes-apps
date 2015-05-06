@@ -1,4 +1,4 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.fragments;
 
 /**
  * Created by Sylvain on 05/05/2015.
@@ -11,9 +11,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.app.Activity;
 
 import java.util.List;
+
+import fr.lescavistes.lescavistes.R;
 
 
 public class ShopListAdapter extends ArrayAdapter<ShopListItem> {

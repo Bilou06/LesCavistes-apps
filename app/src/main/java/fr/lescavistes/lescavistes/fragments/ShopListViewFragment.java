@@ -1,11 +1,9 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.fragments;
 
 import android.app.Activity;
 
 //import android.app.ListFragment;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 
 import android.support.v4.app.ListFragment;
 import android.view.View;
@@ -15,6 +13,8 @@ import android.widget.Toast;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.lescavistes.lescavistes.core.Shop;
 
 /**
  * Created by Sylvain on 05/05/2015.

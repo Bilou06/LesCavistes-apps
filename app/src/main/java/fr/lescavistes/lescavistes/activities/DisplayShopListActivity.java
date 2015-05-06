@@ -1,10 +1,7 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.activities;
 
 
 import android.content.Intent;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -17,17 +14,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+
+import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
+import fr.lescavistes.lescavistes.MainApplication;
+import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
+import fr.lescavistes.lescavistes.fragments.ShopsFragmentPagerAdapter;
 
 
 public class DisplayShopListActivity extends AppCompatActivity
@@ -133,8 +135,7 @@ public class DisplayShopListActivity extends AppCompatActivity
             }
         };
 
-        // Add 3 tabs, specifying the tab's text and TabListener
-
+        // Add 2 tabs
         ActionBar.Tab tab = actionBar.newTab()
                 .setIcon(R.drawable.ic_action_list)
                 .setTabListener(tabListener);

@@ -1,6 +1,6 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.fragments;
 
-import android.graphics.drawable.Drawable;
+import fr.lescavistes.lescavistes.core.Shop;
 
 /**
  * Created by Sylvain on 05/05/2015.

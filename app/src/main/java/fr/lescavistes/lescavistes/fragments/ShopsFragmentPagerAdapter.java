@@ -1,4 +1,4 @@
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,6 +7,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+
+import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
 
 /**
  * Created by Sylvain on 06/05/2015.
@@ -35,16 +37,14 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
 
             listFragment.setContent(shopList);
             listFragment.setArguments(args);
-            //listFragment.setContent(shopList);
             return listFragment;
         }
         else
         {
-            ShopListViewFragment mapFragment = new ShopListViewFragment();
+            ShopMapsViewFragment mapFragment = new ShopMapsViewFragment();
 
-            mapFragment.setContent(shopList);
-            mapFragment.setArguments(args);
             //mapFragment.setContent(shopList);
+            mapFragment.setArguments(args);
             return mapFragment;
         }
     }

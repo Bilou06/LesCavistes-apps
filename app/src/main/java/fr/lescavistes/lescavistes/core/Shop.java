@@ -2,7 +2,7 @@
  * Created by Sylvain on 05/05/2015.
  */
 
-package fr.lescavistes.lescavistes;
+package fr.lescavistes.lescavistes.core;
 
 import org.json.JSONObject;
 
