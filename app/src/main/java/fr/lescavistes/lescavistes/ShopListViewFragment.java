@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,13 +21,9 @@ import java.util.List;
  */
 public class ShopListViewFragment extends ListFragment {
 
-    private List<ShopListItem> mItems;        // ListView items list
+    private static final String ITEMS = "items";
     OnShopSelectedListener mCallback;
-
-    //Container activity must implement this interface
-    public interface OnShopSelectedListener {
-        public void onShopSelected(int id);
-    }
+    private List<ShopListItem> mItems;        // ListView items list
 
     @Override
     public void onAttach(Activity activity) {
@@ -42,22 +39,32 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (mItems == null) {
+            mItems = new ArrayList<ShopListItem>();
+            if (getArguments() != null) {
+                ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable("SHOPS");
+                if (shopList != null)
+                    for (Shop shop : shopList) {
+                        mItems.add(new ShopListItem(shop));
+                    }
+            }
+        }
 
-        mItems = new ArrayList<ShopListItem>();
         // initialize and set the list adapter
         setListAdapter(new ShopListAdapter(getActivity(), mItems));
     }
 
-    public void setContent(ArrayList<Shop> shopList){
+    public void setContent(ArrayList<Shop> shopList) {
+        if (mItems == null)
+            mItems = new ArrayList<ShopListItem>();
         // initialize the items list
-
-        for(Shop shop : shopList){
-            mItems.add(new ShopListItem(shop));
-        }
+        if (shopList != null)
+            for (Shop shop : shopList) {
+                mItems.add(new ShopListItem(shop));
+            }
     }
 
     @Override
@@ -77,5 +84,26 @@ public class ShopListViewFragment extends ListFragment {
 
         // do something
         Toast.makeText(getActivity(), item.title, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            mItems = (List<ShopListItem>) savedInstanceState.getSerializable(ITEMS);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putSerializable(ITEMS, (Serializable) mItems);
+    }
+
+    //Container activity must implement this interface
+    public interface OnShopSelectedListener {
+        public void onShopSelected(int id);
     }
 }

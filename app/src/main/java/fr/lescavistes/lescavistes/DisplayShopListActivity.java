@@ -2,8 +2,12 @@ package fr.lescavistes.lescavistes;
 
 
 import android.content.Intent;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,16 +32,21 @@ import java.util.ArrayList;
 public class DisplayShopListActivity extends AppCompatActivity
 implements ShopListViewFragment.OnShopSelectedListener {
 
-    static final String WHERE = "where";
-    static final String WHAT = "what";
-    static final String LAT = "lat";
-    static final String LNG = "lng";
-    static final String SHOPS = "shops";
+    private static final String WHERE = "where";
+    private static final String WHAT = "what";
+    private static final String LAT = "lat";
+    private static final String LNG = "lng";
+    private static final String SHOPS = "shops";
+
     private static final String TAG = "Display Shop List";
-    String base_URL = "http://192.168.0.12:8181/";
-    String lat, lng, where, what;
-    TextView textView, textView2;
-    ArrayList shopList;
+
+    private String base_URL = "http://192.168.0.12:8181/";
+    private String lat, lng, where, what;
+    private TextView textView, textView2;
+    private ArrayList shopList;
+
+    ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
+    ViewPager mViewPager;
 
     private ShopListViewFragment listViewFragment;
 
@@ -46,13 +55,6 @@ implements ShopListViewFragment.OnShopSelectedListener {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_display_shop_list);
-
-
-        // Add the fragment to the 'fragment_container' FrameLayout
-        listViewFragment = new ShopListViewFragment();
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.shoplist_fragment, listViewFragment).commit();
-
 
         Intent intent = getIntent();
         String where = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
@@ -83,12 +85,15 @@ implements ShopListViewFragment.OnShopSelectedListener {
 
                             }
 
-                            listViewFragment.setContent(shopList);
-                            //refresh
-                            final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                            ft.detach(listViewFragment);
-                            ft.attach(listViewFragment);
-                            ft.commit();
+
+                            // ViewPager and its adapters use support library
+                            // fragments, so use getSupportFragmentManager.
+                            mShopsFragmentPagerAdapter =
+                                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
+                            mShopsFragmentPagerAdapter.setContent(shopList);
+                            mViewPager = (ViewPager) findViewById(R.id.pager);
+                            mViewPager.setAdapter(mShopsFragmentPagerAdapter);
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -149,4 +154,6 @@ implements ShopListViewFragment.OnShopSelectedListener {
 
     }
 }
+
+
 
