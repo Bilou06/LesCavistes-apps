@@ -8,12 +8,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="fr.lescavistes.lescavistes.DisplayShopListActivity">
 
-ee
-    <fragment
+    <FrameLayout
         android:id="@+id/shoplist_fragment"
         android:name="fr.lescavistes.lescavistes.ShopListViewFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1" />
+
 
 </RelativeLayout>

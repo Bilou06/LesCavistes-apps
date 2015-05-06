@@ -2,16 +2,15 @@ package fr.lescavistes.lescavistes;
 
 
 import android.content.Intent;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -26,15 +25,21 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class DisplayShopListActivity extends ActionBarActivity
-        implements ShopListViewFragment.OnShopSelectedListener {
+public class DisplayShopListActivity extends AppCompatActivity
+implements ShopListViewFragment.OnShopSelectedListener {
 
+    static final String WHERE = "where";
+    static final String WHAT = "what";
+    static final String LAT = "lat";
+    static final String LNG = "lng";
+    static final String SHOPS = "shops";
     private static final String TAG = "Display Shop List";
     String base_URL = "http://192.168.0.12:8181/";
     String lat, lng, where, what;
     TextView textView, textView2;
+    ArrayList shopList;
 
-    ShopListViewFragment listViewFragment;
+    private ShopListViewFragment listViewFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,8 +47,9 @@ public class DisplayShopListActivity extends ActionBarActivity
 
         setContentView(R.layout.activity_display_shop_list);
 
-        listViewFragment = new ShopListViewFragment();
+
         // Add the fragment to the 'fragment_container' FrameLayout
+        listViewFragment = new ShopListViewFragment();
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.shoplist_fragment, listViewFragment).commit();
 
@@ -58,7 +64,7 @@ public class DisplayShopListActivity extends ActionBarActivity
         //String get_url = "http://192.168.1.78:8181/static/wineshops/style.css";
 
         // Request a string response from the provided URL.
-        final ArrayList shopList = new ArrayList();
+        shopList = new ArrayList();
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -70,7 +76,7 @@ public class DisplayShopListActivity extends ActionBarActivity
                             // loop through each json object
                             for (int i = 0; i < response.length(); i++) {
 
-                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8( (JSONObject) response.get(i) );
+                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
                                 Shop shop = new Shop(jsonShop);
 
                                 shopList.add(shop);
@@ -107,6 +113,7 @@ public class DisplayShopListActivity extends ActionBarActivity
     }
 
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
@@ -138,7 +145,7 @@ public class DisplayShopListActivity extends ActionBarActivity
 
     }
 
-    public void onShopSelected(int id){
+    public void onShopSelected(int id) {
 
     }
 }

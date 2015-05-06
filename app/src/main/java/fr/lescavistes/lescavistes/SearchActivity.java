@@ -11,10 +11,8 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-//import android.support.v7.app.ActionBar;
-//import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class SearchActivity extends ActionBarActivity implements
+public class SearchActivity extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener {
 
     public final static String WHERE_MESSAGE = "fr.lescavistes.lescavistes.WHERE_MESSAGE";
