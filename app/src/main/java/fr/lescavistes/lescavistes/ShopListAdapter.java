@@ -35,6 +35,7 @@ public class ShopListAdapter extends ArrayAdapter<ShopListItem> {
             viewHolder = new ViewHolder();
             viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
             viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+            viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
             convertView.setTag(viewHolder);
         } else {
             // recycle the already inflated view
@@ -45,6 +46,7 @@ public class ShopListAdapter extends ArrayAdapter<ShopListItem> {
         ShopListItem item = getItem(position);
         viewHolder.tvTitle.setText(item.title);
         viewHolder.tvDescription.setText(item.description);
+        viewHolder.tvAddress.setText(item.address);
 
         return convertView;
     }
@@ -58,5 +60,6 @@ public class ShopListAdapter extends ArrayAdapter<ShopListItem> {
         ImageView ivIcon;
         TextView tvTitle;
         TextView tvDescription;
+        TextView tvAddress;
     }
 }

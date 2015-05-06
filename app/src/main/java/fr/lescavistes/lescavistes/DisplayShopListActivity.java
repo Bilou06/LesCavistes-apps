@@ -70,7 +70,7 @@ public class DisplayShopListActivity extends ActionBarActivity
                             // loop through each json object
                             for (int i = 0; i < response.length(); i++) {
 
-                                JSONObject jsonShop = (JSONObject) response.get(i);
+                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8( (JSONObject) response.get(i) );
                                 Shop shop = new Shop(jsonShop);
 
                                 shopList.add(shop);

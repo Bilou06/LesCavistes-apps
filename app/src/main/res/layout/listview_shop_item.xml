@@ -8,13 +8,18 @@
     android:padding="5dp">
 
     <!-- the innner view - provides the white rectangle -->
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/frame"
-        android:padding="5dp">
+        android:padding="5dp"
+        android:orientation="vertical">
 
 
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
         <!-- the title view -->
         <TextView
             android:id="@+id/tvTitle"
@@ -26,16 +31,22 @@
         <!-- the description view -->
         <TextView
             android:id="@+id/tvDescription"
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/tvTitle"
             android:textAppearance="@android:style/TextAppearance.Small"
             android:layout_gravity="end"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:gravity="end"
             />
+        </LinearLayout>
 
-    </RelativeLayout>
+        <!-- the description view -->
+        <TextView
+            android:id="@+id/tvAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            />
+
+    </LinearLayout>
 
 </RelativeLayout>

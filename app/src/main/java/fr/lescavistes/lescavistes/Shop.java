@@ -6,10 +6,18 @@ package fr.lescavistes.lescavistes;
 
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+
 public class Shop {
 
     private String name;
     private int id;
+    private String address;
+    private String phone;
+    private String email;
+    private String web;
+    private String description;
+    private Double lat, lng;
     private Double dist;
 
     //number of references
@@ -17,9 +25,17 @@ public class Shop {
     private Double price_min;
     private Double price_max;
 
-    public Shop(JSONObject shop){
-        name = shop.optString("shop.name", "nom inconnu");
-        id = shop.optInt("shop.id", 0);
+    public Shop(JSONObject shop) {
+        name = shop.optString("name", "nom inconnu");
+        id = shop.optInt("id", 0);
+        address = shop.optString("address");
+        phone = shop.optString("phone");
+        email = shop.optString("mail");
+        web = shop.optString("web");
+        description = shop.optString("desc");
+        lat = shop.optDouble("lat");
+        lng = shop.optDouble("lng");
+
         dist = shop.optDouble("dist", 0);
         nb = shop.optInt("nb", 0);
         JSONObject price = shop.optJSONObject("price");
@@ -27,19 +43,19 @@ public class Shop {
         price_max = price.optDouble("price_max__max");
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public int getId(){
+    public int getId() {
         return id;
     }
 
-    public Double getDist(){
+    public Double getDist() {
         return dist;
     }
 
-    public int getNbReferences(){
+    public int getNbReferences() {
         return nb;
     }
 
@@ -50,4 +66,9 @@ public class Shop {
     public Double getPrice_min() {
         return price_min;
     }
+
+    public String getAddress() {
+        return address;
+    }
 }
+
