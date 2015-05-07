@@ -8,8 +8,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
-
 /**
  * Created by Sylvain on 06/05/2015.
  */
@@ -24,10 +22,8 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
         args = new Bundle();
     }
 
-    public void setContent(ArrayList shopList, String lat, String lng){
-        args.putSerializable("SHOPS", (Serializable) shopList);
-        args.putFloat("LAT", Float.parseFloat(lat));
-        args.putFloat("LNG", Float.parseFloat(lng));
+    public void setContent(Bundle args){
+        this.args = args;
     }
 
     @Override
@@ -40,7 +36,7 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
         }
         else
         {
-            ShopMapsViewFragment mapFragment = new ShopMapsViewFragment();
+            ShopMapViewFragment mapFragment = new ShopMapViewFragment();
             mapFragment.setArguments(args);
             return mapFragment;
         }

@@ -6,14 +6,18 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import android.support.v4.app.ListFragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Shop;
 
 /**
@@ -39,6 +43,7 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +60,9 @@ public class ShopListViewFragment extends ListFragment {
 
         // initialize and set the list adapter
         setListAdapter(new ShopListAdapter(getActivity(), mItems));
+
     }
+
 
     public void setContent(ArrayList<Shop> shopList) {
         if (mItems == null)
@@ -81,7 +88,12 @@ public class ShopListViewFragment extends ListFragment {
 
         // Send the event to the host activity
         mCallback.onShopSelected(item.id);
-
+/*
+        // change the layout
+        getListView().setItemChecked(position, true);
+        getListView().setSelection(position);
+        getListView().setSelected(true);
+*/
         // do something
         Toast.makeText(getActivity(), item.title, Toast.LENGTH_SHORT).show();
     }

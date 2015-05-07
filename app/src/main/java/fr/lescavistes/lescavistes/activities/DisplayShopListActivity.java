@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -22,8 +21,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
+import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
@@ -45,14 +46,17 @@ public class DisplayShopListActivity extends AppCompatActivity
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
 
+    private ShopListViewFragment listViewFragment;
+    private ShopMapViewFragment mapsViewFragment;
+
     private String base_URL = "http://192.168.0.12:8181/";
     private String lat, lng, where, what;
-    private TextView textView, textView2;
     private ArrayList shopList;
-    private ShopListViewFragment listViewFragment;
+
+    private Boolean mSwipeLayout;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_display_shop_list);
@@ -63,11 +67,11 @@ public class DisplayShopListActivity extends AppCompatActivity
         lng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
         lat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
 
-        String get_url = base_URL + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what;
-
         mViewPager = (ViewPager) findViewById(R.id.pager);
+        mSwipeLayout = (mViewPager != null);
 
         // Request the shop list from the url.
+        String get_url = base_URL + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what;
         shopList = new ArrayList();
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
@@ -87,14 +91,33 @@ public class DisplayShopListActivity extends AppCompatActivity
 
                             }
 
+                            Bundle args = new Bundle();
+                            args.putSerializable("SHOPS", (Serializable) shopList);
+                            args.putFloat("LAT", Float.parseFloat(lat));
+                            args.putFloat("LNG", Float.parseFloat(lng));
 
-                            // ViewPager and its adapters use support library
-                            // fragments, so use getSupportFragmentManager.
-                            mShopsFragmentPagerAdapter =
-                                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
-                            mShopsFragmentPagerAdapter.setContent(shopList, lat, lng);
-                            mViewPager.setAdapter(mShopsFragmentPagerAdapter);
+                            if (mSwipeLayout) {
+                                // ViewPager and its adapters use support library
+                                // fragments, so use getSupportFragmentManager.
+                                mShopsFragmentPagerAdapter =
+                                        new ShopsFragmentPagerAdapter(getSupportFragmentManager());
+                                mShopsFragmentPagerAdapter.setContent(args);
+                                mViewPager.setAdapter(mShopsFragmentPagerAdapter);
+                            } else if (savedInstanceState == null) {
+                                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                                listViewFragment = new ShopListViewFragment();
+                                listViewFragment.setArguments(args);
+                                transaction.add(R.id.list_shops, listViewFragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
 
+                                transaction = getSupportFragmentManager().beginTransaction();
+                                mapsViewFragment = new ShopMapViewFragment();
+                                mapsViewFragment.setArguments(args);
+                                transaction.add(R.id.map_shops, mapsViewFragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -114,51 +137,50 @@ public class DisplayShopListActivity extends AppCompatActivity
         // Add the request to the RequestQueue.
         MainApplication.getInstance().getRequestQueue().add(jsonRequest);
 
-        // action bar
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        if (mSwipeLayout) {
+            // action bar
+            final ActionBar actionBar = getSupportActionBar();
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        // Create a tab listener that is called when the user changes tabs.
-        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
-                // When the tab is selected, switch to the
-                // corresponding page in the ViewPager.
-                mViewPager.setCurrentItem(tab.getPosition());
-            }
+            // Create a tab listener that is called when the user changes tabs.
+            ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+                public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                    // When the tab is selected, switch to the
+                    // corresponding page in the ViewPager.
+                    mViewPager.setCurrentItem(tab.getPosition());
+                }
 
-            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
-                // hide the given tab
-            }
+                public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                    // hide the given tab
+                }
 
-            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
-                // probably ignore this event
-            }
-        };
+                public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                    // probably ignore this event
+                }
+            };
 
-        // Add 2 tabs
-        ActionBar.Tab tab = actionBar.newTab()
-                .setIcon(R.drawable.ic_action_list)
-                .setTabListener(tabListener);
-        actionBar.addTab(tab);
+            // Add 2 tabs
+            ActionBar.Tab tab = actionBar.newTab()
+                    .setIcon(R.drawable.ic_action_list)
+                    .setTabListener(tabListener);
+            actionBar.addTab(tab);
 
-        tab=actionBar.newTab()
-                .setIcon(R.drawable.ic_tab_location)
-                .setTabListener(tabListener);
-        actionBar.addTab(tab);
+            tab = actionBar.newTab()
+                    .setIcon(R.drawable.ic_tab_location)
+                    .setTabListener(tabListener);
+            actionBar.addTab(tab);
 
-
-
-        mViewPager.setOnPageChangeListener(
-                new ViewPager.SimpleOnPageChangeListener() {
-                    @Override
-                    public void onPageSelected(int position) {
-                        // When swiping between pages, select the
-                        // corresponding tab.
-                        actionBar.setSelectedNavigationItem(position);
-                    }
-                });
-
+            mViewPager.setOnPageChangeListener(
+                    new ViewPager.SimpleOnPageChangeListener() {
+                        @Override
+                        public void onPageSelected(int position) {
+                            // When swiping between pages, select the
+                            // corresponding tab.
+                            actionBar.setSelectedNavigationItem(position);
+                        }
+                    });
+        }
     }
 
 

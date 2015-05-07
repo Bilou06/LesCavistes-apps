@@ -26,7 +26,7 @@ import java.util.List;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Shop;
 
-public class ShopMapsViewFragment extends Fragment {
+public class ShopMapViewFragment extends Fragment {
 
     MapView mapView;
     GoogleMap map;
