@@ -44,6 +44,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
+
     private String base_URL = "http://192.168.0.12:8181/";
     private String lat, lng, where, what;
     private TextView textView, textView2;

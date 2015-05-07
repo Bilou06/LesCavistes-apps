@@ -1,77 +1,76 @@
-package fr.lescavistes.lescavistes.fragments;
-
-import android.app.Activity;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.RelativeLayout;
-
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import fr.lescavistes.lescavistes.R;
-import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
-
 /**
  * Created by Sylvain on 06/05/2015.
  */
-public class ShopMapsViewFragment extends Fragment {
 
-    private static GoogleMap map;
+package fr.lescavistes.lescavistes.fragments;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import fr.lescavistes.lescavistes.R;
+
+public class ShopMapsViewFragment extends Fragment  {
+
+    MapView mapView;
+    GoogleMap map;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup group, Bundle saved) {
-        if (group == null) {
-            return null;
-        }
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_map_shops, container, false);
 
-        View v = (RelativeLayout) inflater.inflate(R.layout.fragment_map_shops, group, false);
+        // Gets the MapView from the XML layout and creates it
+        mapView = (MapView) v.findViewById(R.id.mapview);
+        mapView.onCreate(savedInstanceState);
 
-        DisplayShopListActivity a = (DisplayShopListActivity) getActivity();
-        FragmentManager fm = a.getSupportFragmentManager();
+        // Gets to GoogleMap from the MapView and does initialization stuff
+        map = mapView.getMap();
+        map.getUiSettings().setMyLocationButtonEnabled(false);
+        map.setMyLocationEnabled(true);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) fm.findFragmentById(R.id.location_map);
-        map = mapFragment.getMap();
+        // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
+        MapsInitializer.initialize(this.getActivity());
 
-        Marker hamburg = map.addMarker(new MarkerOptions().position(new LatLng(53.558, 9.927))
-                .title("Hamburg"));
-        Marker kiel = map.addMarker(new MarkerOptions()
-                .position(new LatLng(53.551, 9.993))
-                .title("Kiel")
-                .snippet("Kiel is cool")
-                .icon(BitmapDescriptorFactory
-                        .fromResource(R.drawable.ic_tab_location)));
-
-        // Move the camera instantly to hamburg with a zoom of 15.
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(53.558, 9.927), 15));
-
-        // Zoom in, animating the camera.
-        map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+        // Updates the location and zoom of the MapView
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(43.1, -87.9), 10);
+        map.animateCamera(cameraUpdate);
 
         return v;
     }
 
-    /**** The mapfragment's id must be removed from the FragmentManager
-     **** or else if the same it is passed on the next time then
-     **** app will crash ****/
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (map != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .remove(getActivity().getSupportFragmentManager().findFragmentById(R.id.location_map)).commit();
-            map = null;
-        }
+    public void onResume() {
+        mapView.onResume();
+        super.onResume();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
 
 }
