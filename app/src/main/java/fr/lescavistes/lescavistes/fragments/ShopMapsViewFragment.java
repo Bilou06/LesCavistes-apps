@@ -6,52 +6,89 @@ package fr.lescavistes.lescavistes.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import fr.lescavistes.lescavistes.R;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ShopMapsViewFragment extends Fragment  {
+import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.core.Shop;
+
+public class ShopMapsViewFragment extends Fragment {
 
     MapView mapView;
     GoogleMap map;
+
+    private List<MarkerOptions> mMarkerOptions;
+    private float lat, lng;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_map_shops, container, false);
 
+        //read data
+        if (mMarkerOptions == null)
+            mMarkerOptions = new ArrayList<MarkerOptions>();
+        if (getArguments() != null) {
+            lat = getArguments().getFloat("LAT");
+            lng = getArguments().getFloat("LNG");
+
+            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable("SHOPS");
+            if (shopList != null)
+                for (Shop shop : shopList) {
+                    LatLng pos = new LatLng(shop.getLat(), shop.getLng());
+                    mMarkerOptions.add(new MarkerOptions()
+                            .position(pos)
+                            .title(shop.getName()));
+                }
+        }
+
         // Gets the MapView from the XML layout and creates it
         mapView = (MapView) v.findViewById(R.id.mapview);
         mapView.onCreate(savedInstanceState);
 
+        initMap();
+
+        return v;
+    }
+
+    private void initMap() {
         // Gets to GoogleMap from the MapView and does initialization stuff
         map = mapView.getMap();
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.setMyLocationEnabled(true);
 
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+
         // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
         MapsInitializer.initialize(this.getActivity());
 
-        // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(43.1, -87.9), 10);
-        map.animateCamera(cameraUpdate);
+        map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+        bounds.include(new LatLng(lat, lng));
 
-        return v;
+        for(MarkerOptions m: mMarkerOptions){
+            map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            bounds.include(m.getPosition());
+        }
+
+
+        // Updates the location and zoom of the MapView
+        //LatLngBounds b = bounds.build();
+        //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(b, 50);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 14);
+        map.moveCamera(cameraUpdate);
     }
 
     @Override
@@ -71,6 +108,4 @@ public class ShopMapsViewFragment extends Fragment  {
         super.onLowMemory();
         mapView.onLowMemory();
     }
-
-
 }

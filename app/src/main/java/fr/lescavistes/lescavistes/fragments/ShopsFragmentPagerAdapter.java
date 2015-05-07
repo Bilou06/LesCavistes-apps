@@ -17,33 +17,30 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
 
     static final int NUM_ITEMS = 2;
 
+    private Bundle args;
 
     public ShopsFragmentPagerAdapter(FragmentManager fm) {
         super(fm);
+        args = new Bundle();
     }
 
-    public void setContent(ArrayList content){
-        shopList = content;
+    public void setContent(ArrayList shopList, String lat, String lng){
+        args.putSerializable("SHOPS", (Serializable) shopList);
+        args.putFloat("LAT", Float.parseFloat(lat));
+        args.putFloat("LNG", Float.parseFloat(lng));
     }
-
-    private ArrayList shopList;
 
     @Override
     public Fragment getItem(int i) {
-        Bundle args = new Bundle();
-        args.putSerializable("SHOPS", (Serializable) shopList);
+
         if(i == 0) {
             ShopListViewFragment listFragment = new ShopListViewFragment();
-
-            listFragment.setContent(shopList);
             listFragment.setArguments(args);
             return listFragment;
         }
         else
         {
             ShopMapsViewFragment mapFragment = new ShopMapsViewFragment();
-
-            //mapFragment.setContent(shopList);
             mapFragment.setArguments(args);
             return mapFragment;
         }
@@ -56,6 +53,9 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return "OBJECT " + (position + 1);
+        if(position==0)
+            return "Liste des magasins";
+        else
+            return "Carte des magasins";
     }
 }

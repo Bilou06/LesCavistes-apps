@@ -70,5 +70,13 @@ public class Shop {
     public String getAddress() {
         return address;
     }
+
+    public Double getLat() {
+        return lat;
+    }
+
+    public Double getLng() {
+        return lng;
+    }
 }
 

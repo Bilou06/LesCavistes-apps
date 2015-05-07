@@ -92,7 +92,7 @@ public class DisplayShopListActivity extends AppCompatActivity
                             // fragments, so use getSupportFragmentManager.
                             mShopsFragmentPagerAdapter =
                                     new ShopsFragmentPagerAdapter(getSupportFragmentManager());
-                            mShopsFragmentPagerAdapter.setContent(shopList);
+                            mShopsFragmentPagerAdapter.setContent(shopList, lat, lng);
                             mViewPager.setAdapter(mShopsFragmentPagerAdapter);
 
 
