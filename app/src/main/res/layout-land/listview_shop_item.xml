@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:background="@color/frame_background"
+    android:background="@color/menu_highlight"
     android:gravity="center_vertical"
     android:padding="5dp">
 

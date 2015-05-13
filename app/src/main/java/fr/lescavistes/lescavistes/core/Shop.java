@@ -6,9 +6,10 @@ package fr.lescavistes.lescavistes.core;
 
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
-public class Shop {
+public class Shop implements Serializable {
 
     private String name;
     private int id;

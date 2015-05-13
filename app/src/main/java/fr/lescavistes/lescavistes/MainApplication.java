@@ -14,6 +14,7 @@ public class MainApplication extends Application {
 
     private static MainApplication sInstance;
     private static boolean DEBUG = true;
+    private static String URL = "http://192.168.0.12:8181/";
 
     private RequestQueue mRequestQueue;
 
@@ -35,4 +36,6 @@ public class MainApplication extends Application {
     }
 
     public static boolean isDebug() { return DEBUG; }
+
+    public static String baseUrl() {return URL;}
 }

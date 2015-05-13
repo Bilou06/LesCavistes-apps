@@ -1,6 +1,9 @@
 package fr.lescavistes.lescavistes.activities;
 
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -21,13 +24,21 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
+import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
 public class SearchActivity extends AppCompatActivity implements
@@ -37,7 +48,11 @@ public class SearchActivity extends AppCompatActivity implements
     public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
     public final static String LAT_MESSAGE = "fr.lescavistes.lescavistes.LAT_MESSAGE";
     public final static String LNG_MESSAGE = "fr.lescavistes.lescavistes.LNG_MESSAGE";
+    public final static String SHOPS_MESSAGE = "fr.lescavistes.lescavistes.SHOPS_MESSAGE";
+    public final static String NB_RESULTS = "fr.lescavistes.lescavistes.NB_RESULTS";
+
     protected static final String TAG = "search-activity";
+
     /**
      * Provides the entry point to Google Play services.
      */
@@ -45,6 +60,8 @@ public class SearchActivity extends AppCompatActivity implements
     protected boolean mGoogleApiConnected = false;
 
     Geocoder geocoder = null;
+
+    private String lat, lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +122,6 @@ public class SearchActivity extends AppCompatActivity implements
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
     }
 
-
     @Override
     public void onConnectionSuspended(int cause) {
         // The connection to Google Play services was lost for some reason. We call connect() to
@@ -120,6 +136,7 @@ public class SearchActivity extends AppCompatActivity implements
         getMenuInflater().inflate(R.menu.menu_search, menu);
         return true;
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -136,25 +153,27 @@ public class SearchActivity extends AppCompatActivity implements
         return super.onOptionsItemSelected(item);
     }
 
+
     /**
      * Called when the user clicks the button
      */
     public void searchWhere(View view) {
 
-        Intent intent = new Intent(this, DisplayShopListActivity.class);
+        final Intent intent = new Intent(this, DisplayShopListActivity.class);
 
-        EditText editText = (EditText) findViewById(R.id.query_where);
-        String where = editText.getText().toString();
+        EditText editText = (EditText) findViewById(R.id.query_what);
+        final String what = editText.getText().toString();
+
+        editText = (EditText) findViewById(R.id.query_where);
+        final String where = editText.getText().toString();
 
         // if empty, use current location
         if (where.length() == 0) {
             if (mGoogleApiConnected) {
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
-                    String lat = String.valueOf(mLastLocation.getLatitude());
-                    String lng = String.valueOf(mLastLocation.getLongitude());
-                    intent.putExtra(LAT_MESSAGE, lat);
-                    intent.putExtra(LNG_MESSAGE, lng);
+                    lat = String.valueOf(mLastLocation.getLatitude());
+                    lng = String.valueOf(mLastLocation.getLongitude());
                 } else {
                     Toast.makeText(this, R.string.impossible_to_connect, Toast.LENGTH_LONG).show();
                     return;
@@ -166,9 +185,15 @@ public class SearchActivity extends AppCompatActivity implements
 
         } else {
             List<Address> addresses;
-            if (geocoder==null) {
-                intent.putExtra(LAT_MESSAGE, "44");
-                intent.putExtra(LNG_MESSAGE, "3");
+            if (geocoder == null) {
+                if (MainApplication.isDebug()) {
+                    lat = "44";
+                    lng = "3";
+                } else {
+                    Toast.makeText(this, R.string.no_connection_geocoder, Toast.LENGTH_LONG).show();
+                    return;
+                }
+
             } else {
                 try {
                     addresses = geocoder.getFromLocationName(where, 1);
@@ -178,33 +203,72 @@ public class SearchActivity extends AppCompatActivity implements
                 }
 
                 if (addresses.size() > 0) {
-                    String lat = String.valueOf(addresses.get(0).getLatitude());
-                    String lng = String.valueOf(addresses.get(0).getLongitude());
-                    intent.putExtra(LAT_MESSAGE, lat);
-                    intent.putExtra(LNG_MESSAGE, lng);
+                    lat = String.valueOf(addresses.get(0).getLatitude());
+                    lng = String.valueOf(addresses.get(0).getLongitude());
+
                 } else {
-                    if (MainApplication.isDebug()){
-                        intent.putExtra(LAT_MESSAGE, "44");
-                        intent.putExtra(LNG_MESSAGE, "3");
+                    if (MainApplication.isDebug()) {
+                        lat = "44";
+                        lng = "3";
                     } else {
                         Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
                         return;
                     }
                 }
             }
-
         }
 
-        editText = (EditText) findViewById(R.id.query_what);
-        String what = editText.getText().toString();
+        // Request the shop list from the url.
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what+"&p=0";
 
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
+                new Response.Listener<JSONArray>() {
 
-        intent.putExtra(WHERE_MESSAGE, where);
-        intent.putExtra(WHAT_MESSAGE, what);
+                    @Override
+                    public void onResponse(JSONArray response) {
 
-        startActivity(intent);
+                        try {
+                            // Parsing json array response
+
+                            String size = response.get(0).toString();
+
+                            ArrayList shopList = new ArrayList();
+                            for (int i = 1; i < response.length(); i++) {
+
+                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
+                                Shop shop = new Shop(jsonShop);
+
+                                shopList.add(shop);
+
+                            }
+                            intent.putExtra(NB_RESULTS, size);
+                            intent.putExtra(SHOPS_MESSAGE, (Serializable) shopList);
+
+                            intent.putExtra(LAT_MESSAGE, lat);
+                            intent.putExtra(LNG_MESSAGE, lng);
+
+                            intent.putExtra(WHERE_MESSAGE, where);
+                            intent.putExtra(WHAT_MESSAGE, what);
+
+                            startActivity(intent);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(),
+                                    "Error: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),
+                        "Impossible de retrouver les informations, veuillez réessayer",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+        // Add the request to the RequestQueue.
+        MainApplication.getInstance().getRequestQueue().add(jsonRequest);
 
     }
-
 }
 

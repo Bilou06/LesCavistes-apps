@@ -17,4 +17,5 @@
     <string name="ununderstable_address">Impossible de trouver cette adresse, merci de présiser</string>
     <string name="shop_title">Cavistes</string>
     <string name="icon_content_description">icon content description</string>
+    <string name="no_connection_geocoder">Impossible de se connecter aux services degéolocalisation. Merci de réessayer plus tard.</string>
 </resources>

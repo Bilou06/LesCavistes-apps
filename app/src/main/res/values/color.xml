@@ -6,4 +6,9 @@
     <color name="frame_solid">#eee</color>
     <color name="frame_background">#bcbcbc</color>
 
+    <color name="white">#FFFFFF</color>
+    <color name="red">#FF0000</color>
+
+    <color name="purple">#ffa53f4f</color>
+
 </resources>

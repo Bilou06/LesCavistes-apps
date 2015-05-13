@@ -36,11 +36,17 @@ import fr.lescavistes.lescavistes.fragments.ShopsFragmentPagerAdapter;
 public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener {
 
+    public static final String SHOPS_KEY = "shops_key";
+    public static final String LAT_KEY = "LAT_KEY";
+    public static final String LNG_KEY = "LNG_KEY";
+    public static final String SIZE_KEY = "size_key";
+
+
     private static final String WHERE = "where";
     private static final String WHAT = "what";
     private static final String LAT = "lat";
     private static final String LNG = "lng";
-    private static final String SHOPS = "shops";
+
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -49,8 +55,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     private ShopListViewFragment listViewFragment;
     private ShopMapViewFragment mapsViewFragment;
 
-    private String base_URL = "http://192.168.0.12:8181/";
-    private String lat, lng, where, what;
+    private String lat, lng, where, what, size;
     private ArrayList shopList;
 
     private Boolean mSwipeLayout;
@@ -66,76 +71,12 @@ public class DisplayShopListActivity extends AppCompatActivity
         String what = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
         lng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
         lat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
+        shopList = (ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE);
+        size = intent.getStringExtra(SearchActivity.NB_RESULTS);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
 
-        // Request the shop list from the url.
-        String get_url = base_URL + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what;
-        shopList = new ArrayList();
-        JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
-                new Response.Listener<JSONArray>() {
-
-                    @Override
-                    public void onResponse(JSONArray response) {
-
-                        try {
-                            // Parsing json array response
-                            // loop through each json object
-                            for (int i = 0; i < response.length(); i++) {
-
-                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
-                                Shop shop = new Shop(jsonShop);
-
-                                shopList.add(shop);
-
-                            }
-
-                            Bundle args = new Bundle();
-                            args.putSerializable("SHOPS", (Serializable) shopList);
-                            args.putFloat("LAT", Float.parseFloat(lat));
-                            args.putFloat("LNG", Float.parseFloat(lng));
-
-                            if (mSwipeLayout) {
-                                // ViewPager and its adapters use support library
-                                // fragments, so use getSupportFragmentManager.
-                                mShopsFragmentPagerAdapter =
-                                        new ShopsFragmentPagerAdapter(getSupportFragmentManager());
-                                mShopsFragmentPagerAdapter.setContent(args);
-                                mViewPager.setAdapter(mShopsFragmentPagerAdapter);
-                            } else if (savedInstanceState == null) {
-                                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                                listViewFragment = new ShopListViewFragment();
-                                listViewFragment.setArguments(args);
-                                transaction.add(R.id.list_shops, listViewFragment);
-                                transaction.addToBackStack(null);
-                                transaction.commit();
-
-                                transaction = getSupportFragmentManager().beginTransaction();
-                                mapsViewFragment = new ShopMapViewFragment();
-                                mapsViewFragment.setArguments(args);
-                                transaction.add(R.id.map_shops, mapsViewFragment);
-                                transaction.addToBackStack(null);
-                                transaction.commit();
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(),
-                                    "Error: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(),
-                        "Impossible de retrouver les informations, veuillez réessayer",
-                        Toast.LENGTH_LONG).show();
-            }
-        });
-        // Add the request to the RequestQueue.
-        MainApplication.getInstance().getRequestQueue().add(jsonRequest);
 
         if (mSwipeLayout) {
             // action bar
@@ -181,6 +122,38 @@ public class DisplayShopListActivity extends AppCompatActivity
                         }
                     });
         }
+
+
+
+        // Create the content fragments : map and list
+        Bundle args = new Bundle();
+        args.putSerializable(SHOPS_KEY, shopList);
+        args.putFloat(LAT_KEY, Float.parseFloat(lat));
+        args.putFloat(LNG_KEY, Float.parseFloat(lng));
+        args.putInt(SIZE_KEY, Integer.parseInt(size));
+
+        if (mSwipeLayout) {
+            mShopsFragmentPagerAdapter =
+                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
+            mShopsFragmentPagerAdapter.setContent(args);
+            mViewPager.setAdapter(mShopsFragmentPagerAdapter);
+
+        } else if (savedInstanceState == null) {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            listViewFragment = new ShopListViewFragment();
+            listViewFragment.setArguments(args);
+            transaction.add(R.id.list_shops, listViewFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+
+            transaction = getSupportFragmentManager().beginTransaction();
+            mapsViewFragment = new ShopMapViewFragment();
+            mapsViewFragment.setArguments(args);
+            transaction.add(R.id.map_shops, mapsViewFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
+
     }
 
 
