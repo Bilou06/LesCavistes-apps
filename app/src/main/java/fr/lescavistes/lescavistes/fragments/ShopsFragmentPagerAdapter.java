@@ -17,6 +17,9 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
 
     private Bundle args;
 
+    private ShopListViewFragment listFragment;
+    private ShopMapViewFragment mapFragment;
+
     public ShopsFragmentPagerAdapter(FragmentManager fm) {
         super(fm);
         args = new Bundle();
@@ -30,13 +33,13 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int i) {
 
         if(i == 0) {
-            ShopListViewFragment listFragment = new ShopListViewFragment();
+            listFragment = new ShopListViewFragment();
             listFragment.setArguments(args);
             return listFragment;
         }
         else
         {
-            ShopMapViewFragment mapFragment = new ShopMapViewFragment();
+            mapFragment = new ShopMapViewFragment();
             mapFragment.setArguments(args);
             return mapFragment;
         }
@@ -53,5 +56,13 @@ public class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
             return "Liste des magasins";
         else
             return "Carte des magasins";
+    }
+
+    public ShopListViewFragment getListFragment(){
+        return listFragment;
+    }
+
+    public ShopMapViewFragment getMapFragment(){
+        return mapFragment;
     }
 }

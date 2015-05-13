@@ -6,18 +6,31 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import android.support.v4.app.ListFragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.utils.EndlessScrollListener;
+import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 /**
  * Created by Sylvain on 05/05/2015.
@@ -68,8 +81,16 @@ public class ShopListViewFragment extends ListFragment {
 
     }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
 
-    public void setContent(ArrayList<Shop> shopList) {
+        return v;
+    }
+
+
+    public void addContent(int size, ArrayList<Shop> shopList) {
         if (mItems == null)
             mItems = new ArrayList<ShopListItem>();
         // initialize the items list
@@ -77,6 +98,13 @@ public class ShopListViewFragment extends ListFragment {
             for (Shop shop : shopList) {
                 mItems.add(new ShopListItem(shop));
             }
+        this.size=size;
+
+        int index = getListView().getFirstVisiblePosition();
+        View v = getListView().getChildAt(0);
+        int top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
+        setListAdapter(new ShopListAdapter(getActivity(), mItems));
+        getListView().setSelectionFromTop(index, top);
     }
 
     @Override
@@ -84,6 +112,19 @@ public class ShopListViewFragment extends ListFragment {
         super.onViewCreated(view, savedInstanceState);
         // remove the dividers from the ListView of the ListFragment
         getListView().setDivider(null);
+
+        // Attach the listener to the AdapterView in order to load data when needed
+        getListView().setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                // Triggered only when new data needs to be appended to the list
+
+                if (totalItemsCount == size)
+                    return;
+
+                ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount);
+            }
+        });
     }
 
     @Override

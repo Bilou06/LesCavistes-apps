@@ -67,8 +67,8 @@ public class DisplayShopListActivity extends AppCompatActivity
         setContentView(R.layout.activity_display_shop_list);
 
         Intent intent = getIntent();
-        String where = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
-        String what = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
+        where = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
+        what = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
         lng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
         lat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
         shopList = (ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE);
@@ -122,7 +122,6 @@ public class DisplayShopListActivity extends AppCompatActivity
                         }
                     });
         }
-
 
 
         // Create the content fragments : map and list
@@ -191,6 +190,63 @@ public class DisplayShopListActivity extends AppCompatActivity
     public void onShopSelected(int id) {
 
     }
+
+
+    // Append more data into the adapter
+    public void loadMoreDataFromApi(int offset) {
+        // Request the shop list from the url.
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what + "&c=" + String.valueOf(offset);
+        JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
+                new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        try {
+                            // Parsing json array response
+
+                            int size = Integer.parseInt(response.get(0).toString());
+
+                            ArrayList shopList = new ArrayList();
+                            for (int i = 1; i < response.length(); i++) {
+
+                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
+                                Shop shop = new Shop(jsonShop);
+
+                                shopList.add(shop);
+
+                            }
+
+                            if (mSwipeLayout) {
+                                mShopsFragmentPagerAdapter.getListFragment().addContent(size, shopList);
+                                mShopsFragmentPagerAdapter.getMapFragment().addContent(size, shopList);
+                            }
+                            else{
+                                listViewFragment.addContent(size, shopList);
+                                mapsViewFragment.addContent(size, shopList);
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(),
+                                    "Error: " + e.getMessage(),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(),
+                        "Impossible de retrouver les informations, veuillez réessayer",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+        // Add the request to the RequestQueue.
+        MainApplication.getInstance().getRequestQueue().add(jsonRequest);
+
+    }
+
+
 }
 
 

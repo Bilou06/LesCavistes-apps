@@ -108,4 +108,7 @@ public class ShopMapViewFragment extends Fragment {
         super.onLowMemory();
         mapView.onLowMemory();
     }
+
+    public void addContent(int size, ArrayList<Shop> shopList) {
+    }
 }
