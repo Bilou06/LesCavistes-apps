@@ -21,7 +21,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
@@ -30,7 +29,6 @@ import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
-import fr.lescavistes.lescavistes.fragments.ShopsFragmentPagerAdapter;
 
 
 public class DisplayShopListActivity extends AppCompatActivity
@@ -49,7 +47,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
 
     private static final String TAG = "Display Shop List";
-    ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
+    ShopListViewFragment.ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
 
     private ShopListViewFragment listViewFragment;
@@ -133,7 +131,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
-                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
+                    new ShopListViewFragment.ShopsFragmentPagerAdapter(getSupportFragmentManager());
             mShopsFragmentPagerAdapter.setContent(args);
             mViewPager.setAdapter(mShopsFragmentPagerAdapter);
 

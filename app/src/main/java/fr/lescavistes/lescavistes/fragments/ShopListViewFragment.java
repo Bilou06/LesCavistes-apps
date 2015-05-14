@@ -3,34 +3,31 @@ package fr.lescavistes.lescavistes.fragments;
 import android.app.Activity;
 
 //import android.app.ListFragment;
+import android.content.Context;
 import android.os.Bundle;
 
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.EndlessScrollListener;
-import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
+import fr.lescavistes.lescavistes.utils.GenericAdapter;
 
 /**
  * Created by Sylvain on 05/05/2015.
@@ -66,17 +63,18 @@ public class ShopListViewFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (mItems == null) {
-            mItems = new ArrayList<ShopListItem>();
-            if (getArguments() != null) {
-                size = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
+        if (mItems != null) {
+            return;
+        }
+        mItems = new ArrayList<ShopListItem>();
+        if (getArguments() != null) {
+            size = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
 
-                ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
-                if (shopList != null)
-                    for (Shop shop : shopList) {
-                        mItems.add(new ShopListItem(shop));
-                    }
-            }
+            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
+            if (shopList != null)
+                for (Shop shop : shopList) {
+                    mItems.add(new ShopListItem(shop));
+                }
         }
 
     }
@@ -103,7 +101,9 @@ public class ShopListViewFragment extends ListFragment {
         int index = getListView().getFirstVisiblePosition();
         View v = getListView().getChildAt(0);
         int top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
-        setListAdapter(new ShopListAdapter(getActivity(), mItems));
+        ShopListAdapter adapter = new ShopListAdapter(getActivity(), mItems);
+        adapter.setServerListSize(size);
+        setListAdapter(adapter);
         getListView().setSelectionFromTop(index, top);
     }
 
@@ -173,7 +173,10 @@ public class ShopListViewFragment extends ListFragment {
         this.getListView().addHeaderView(v);
 
         // initialize and set the list adapter
-        setListAdapter(new ShopListAdapter(getActivity(), mItems));
+
+        ShopListAdapter adapter = new ShopListAdapter(getActivity(), mItems);
+        adapter.setServerListSize(size);
+        setListAdapter(adapter);
 
         if (selected>-1){
             ShopListItem selectedItem = mItems.get(selected);
@@ -196,5 +199,140 @@ public class ShopListViewFragment extends ListFragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
+    }
+
+    public static class ShopListAdapter extends GenericAdapter<ShopListItem> {
+
+        public ShopListAdapter(Activity activity, List<ShopListItem> items) {
+            super(activity, R.layout.listview_shop_item, items);
+        }
+
+        @Override
+        public View getDataRow(int position, View convertView, ViewGroup parent){
+        //public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder viewHolder;
+
+            if (convertView == null) {
+                // inflate the GridView item layout
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                convertView = inflater.inflate(R.layout.listview_shop_item, parent, false);
+
+                // initialize the view holder
+                viewHolder = new ViewHolder();
+                viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
+                viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+                viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
+                convertView.setTag(viewHolder);
+            } else {
+                // recycle the already inflated view
+                viewHolder = (ViewHolder) convertView.getTag();
+            }
+
+            // update the item view
+            ShopListItem item = getItem(position);
+            viewHolder.tvTitle.setText(item.title);
+            viewHolder.tvDescription.setText(item.description);
+            viewHolder.tvAddress.setText(item.address);
+
+            return convertView;
+        }
+
+
+
+        /**
+         * The view holder design pattern prevents using findViewById()
+         * repeatedly in the getView() method of the adapter.
+         *
+         */
+        private static class ViewHolder {
+            ImageView ivIcon;
+            TextView tvTitle;
+            TextView tvDescription;
+            TextView tvAddress;
+        }
+    }
+
+    /**
+     * Created by Sylvain on 05/05/2015.
+     */
+    public static class ShopListItem {
+
+        public final String title;        // the text for the ListView item title
+        public final String description;  // the text for the ListView item description
+        public final String address;  // the text for the ListView item description
+        public final int id;
+
+        public ShopListItem(int id, String title, String description, String address) {
+            this.title = title;
+            this.description = description;
+            this.address = address;
+            this.id = id;
+        }
+
+        public ShopListItem(Shop shop) {
+            this.title = shop.getName();
+            this.description = String.valueOf(shop.getDist()) + " km";
+            this.id = shop.getId();
+            this.address = shop.getAddress();
+        }
+    }
+
+    /**
+     * Created by Sylvain on 06/05/2015.
+     */
+    public static class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
+
+        static final int NUM_ITEMS = 2;
+
+        private Bundle args;
+
+        private ShopListViewFragment listFragment;
+        private ShopMapViewFragment mapFragment;
+
+        public ShopsFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+            args = new Bundle();
+        }
+
+        public void setContent(Bundle args){
+            this.args = args;
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+
+            if(i == 0) {
+                listFragment = new ShopListViewFragment();
+                listFragment.setArguments(args);
+                return listFragment;
+            }
+            else
+            {
+                mapFragment = new ShopMapViewFragment();
+                mapFragment.setArguments(args);
+                return mapFragment;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return NUM_ITEMS;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            if(position==0)
+                return "Liste des magasins";
+            else
+                return "Carte des magasins";
+        }
+
+        public ShopListViewFragment getListFragment(){
+            return listFragment;
+        }
+
+        public ShopMapViewFragment getMapFragment(){
+            return mapFragment;
+        }
     }
 }
