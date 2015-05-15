@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Shop;
 
 public class ShopMapViewFragment extends Fragment {
@@ -32,6 +33,9 @@ public class ShopMapViewFragment extends Fragment {
     GoogleMap map;
 
     private List<MarkerOptions> mMarkerOptions;
+    private int size;
+    private int selected;
+
     private float lat, lng;
 
     @Override
@@ -39,13 +43,13 @@ public class ShopMapViewFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_map_shops, container, false);
 
         //read data
-        if (mMarkerOptions == null)
-            mMarkerOptions = new ArrayList<MarkerOptions>();
+        if (mMarkerOptions == null) mMarkerOptions = new ArrayList<>();
         if (getArguments() != null) {
-            lat = getArguments().getFloat("LAT");
-            lng = getArguments().getFloat("LNG");
+            lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
+            lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
+            size = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
 
-            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable("SHOPS");
+            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
             if (shopList != null)
                 for (Shop shop : shopList) {
                     LatLng pos = new LatLng(shop.getLat(), shop.getLng());
@@ -70,23 +74,17 @@ public class ShopMapViewFragment extends Fragment {
         map.getUiSettings().setMyLocationButtonEnabled(false);
         map.setMyLocationEnabled(true);
 
-        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-
         // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
         MapsInitializer.initialize(this.getActivity());
 
         map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
-        bounds.include(new LatLng(lat, lng));
 
         for(MarkerOptions m: mMarkerOptions){
-            map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-            bounds.include(m.getPosition());
+            //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
         }
 
-
         // Updates the location and zoom of the MapView
-        //LatLngBounds b = bounds.build();
-        //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(b, 50);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 14);
         map.moveCamera(cameraUpdate);
     }
@@ -110,5 +108,27 @@ public class ShopMapViewFragment extends Fragment {
     }
 
     public void addContent(int size, ArrayList<Shop> shopList) {
+        this.size = size;
+
+        for (Shop shop : shopList) {
+            LatLng pos = new LatLng(shop.getLat(), shop.getLng());
+            mMarkerOptions.add(new MarkerOptions()
+                    .position(pos)
+                    .title(shop.getName()));
+        }
+        for(MarkerOptions m: mMarkerOptions){
+            map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
+        }
+    }
+
+    public void setSelected(int position){
+        if(position == selected)
+            return;
+        selected = position;
+
+        if (selected>-1){
+
+        }
+
     }
 }

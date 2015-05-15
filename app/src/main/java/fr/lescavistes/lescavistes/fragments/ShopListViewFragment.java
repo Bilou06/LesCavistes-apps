@@ -2,8 +2,6 @@ package fr.lescavistes.lescavistes.fragments;
 
 import android.app.Activity;
 
-//import android.app.ListFragment;
-import android.content.Context;
 import android.os.Bundle;
 
 import android.support.v4.app.Fragment;
@@ -13,7 +11,6 @@ import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -40,6 +37,7 @@ public class ShopListViewFragment extends ListFragment {
 
     OnShopSelectedListener mCallback;
     private List<ShopListItem> mItems;        // ListView items list
+    private ShopListAdapter mAdapter;
 
     private int selected;
     private int size;
@@ -58,7 +56,6 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +63,9 @@ public class ShopListViewFragment extends ListFragment {
         if (mItems != null) {
             return;
         }
-        mItems = new ArrayList<ShopListItem>();
+
+        selected = -1;
+        mItems = new ArrayList<>();
         if (getArguments() != null) {
             size = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
 
@@ -77,34 +76,6 @@ public class ShopListViewFragment extends ListFragment {
                 }
         }
 
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View v = super.onCreateView(inflater, container, savedInstanceState);
-
-        return v;
-    }
-
-
-    public void addContent(int size, ArrayList<Shop> shopList) {
-        if (mItems == null)
-            mItems = new ArrayList<ShopListItem>();
-        // initialize the items list
-        if (shopList != null)
-            for (Shop shop : shopList) {
-                mItems.add(new ShopListItem(shop));
-            }
-        this.size=size;
-
-        int index = getListView().getFirstVisiblePosition();
-        View v = getListView().getChildAt(0);
-        int top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
-        ShopListAdapter adapter = new ShopListAdapter(getActivity(), mItems);
-        adapter.setServerListSize(size);
-        setListAdapter(adapter);
-        getListView().setSelectionFromTop(index, top);
     }
 
     @Override
@@ -119,7 +90,7 @@ public class ShopListViewFragment extends ListFragment {
             public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
 
-                if (totalItemsCount == size)
+                if (totalItemsCount > size)
                     return;
 
                 ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount);
@@ -129,17 +100,22 @@ public class ShopListViewFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        if (position>0) {
+        if (position > 0) {
+
+            //tell the activity
+            mCallback.onShopSelected(position);
+
             position = position - 1;//due to header
             // retrieve theListView item
             ShopListItem item = mItems.get(position);
 
-            // Send the event to the host activity
-            mCallback.onShopSelected(item.id);
             selected = position;
 
             // change the layout
             v.setSelected(true);
+
+            mAdapter.selectedItem(position);
+            mAdapter.notifyDataSetChanged();
 
             // do something
             Toast.makeText(getActivity(), item.title, Toast.LENGTH_SHORT).show();
@@ -159,31 +135,32 @@ public class ShopListViewFragment extends ListFragment {
         //add header
         View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
         TextView tv = (TextView) v.findViewById(R.id.nbResults);
-;
-        if (size == 0){
+        ;
+        if (size == 0) {
             tv.setText("Aucun résultat");
-        } else if (size == 1){
+        } else if (size == 1) {
             tv.setText("1 résultat");
         } else {
             tv.setText(String.valueOf(size) + " résultats");
         }
 
-
-
         this.getListView().addHeaderView(v);
 
         // initialize and set the list adapter
 
-        ShopListAdapter adapter = new ShopListAdapter(getActivity(), mItems);
-        adapter.setServerListSize(size);
-        setListAdapter(adapter);
+        mAdapter = new ShopListAdapter(getActivity(), mItems);
+        mAdapter.setServerListSize(size);
+        mAdapter.selectedItem(selected);
+        setListAdapter(mAdapter);
 
-        if (selected>-1){
+        // select the element
+        if (selected > -1 && selected < mItems.size()) {
             ShopListItem selectedItem = mItems.get(selected);
-            if(selectedItem != null){
+            if (selectedItem != null) {
                 getListView().setSelection(selected);
                 getListView().setItemChecked(selected, true);
                 getListView().getAdapter().getView(selected, null, null).setSelected(true);
+                getListView().requestFocus();
             }
         }
     }
@@ -196,6 +173,41 @@ public class ShopListViewFragment extends ListFragment {
         outState.putInt(SIZE, size);
     }
 
+    public void addContent(int size, ArrayList<Shop> shopList) {
+        if (mItems == null)
+            mItems = new ArrayList<ShopListItem>();
+        // initialize the items list
+        if (shopList != null)
+            for (Shop shop : shopList) {
+                mItems.add(new ShopListItem(shop));
+            }
+        this.size = size;
+
+        int index = getListView().getFirstVisiblePosition();
+        View v = getListView().getChildAt(0);
+        int top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
+        mAdapter = new ShopListAdapter(getActivity(), mItems);
+        mAdapter.setServerListSize(size);
+        setListAdapter(mAdapter);
+        getListView().setSelectionFromTop(index, top);
+    }
+
+    public void setSelected(int position) {
+        if (position == selected)
+            return;
+        selected = position;
+
+        if (selected > -1 && selected < mItems.size()) {
+            ShopListItem selectedItem = mItems.get(selected);
+            if (selectedItem != null) {
+                getListView().setSelection(selected);
+                getListView().setItemChecked(selected, true);
+                getListView().getAdapter().getView(selected, null, null).setSelected(true);
+            }
+        }
+
+    }
+
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
@@ -203,19 +215,50 @@ public class ShopListViewFragment extends ListFragment {
 
     public static class ShopListAdapter extends GenericAdapter<ShopListItem> {
 
+        private int selected;
+
         public ShopListAdapter(Activity activity, List<ShopListItem> items) {
             super(activity, R.layout.listview_shop_item, items);
+            selected = -1;
+        }
+
+        public void selectedItem(int selected) {
+            this.selected = selected;
         }
 
         @Override
-        public View getDataRow(int position, View convertView, ViewGroup parent){
-        //public View getView(int position, View convertView, ViewGroup parent) {
+        public View getDataRow(int position, View convertView, ViewGroup parent) {
+
             ViewHolder viewHolder;
 
-            if (convertView == null) {
+            if (position != selected) {
+                if (convertView == null) {
+                    // inflate the GridView item layout
+                    LayoutInflater inflater = LayoutInflater.from(getContext());
+                    convertView = inflater.inflate(R.layout.listview_shop_item, parent, false);
+
+                    // initialize the view holder
+                    viewHolder = new ViewHolder();
+                    viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
+                    viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+                    viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
+                    convertView.setTag(viewHolder);
+                } else {
+                    // recycle the already inflated view
+                    viewHolder = (ViewHolder) convertView.getTag();
+                }
+
+                // update the item view
+                ShopListItem item = getItem(position);
+                viewHolder.tvTitle.setText(item.title);
+                viewHolder.tvDescription.setText(item.description);
+                viewHolder.tvAddress.setText(item.address);
+
+                return convertView;
+            } else {
                 // inflate the GridView item layout
                 LayoutInflater inflater = LayoutInflater.from(getContext());
-                convertView = inflater.inflate(R.layout.listview_shop_item, parent, false);
+                convertView = inflater.inflate(R.layout.listview_selected_shop_item, parent, false);
 
                 // initialize the view holder
                 viewHolder = new ViewHolder();
@@ -223,26 +266,22 @@ public class ShopListViewFragment extends ListFragment {
                 viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
                 viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
                 convertView.setTag(viewHolder);
-            } else {
-                // recycle the already inflated view
-                viewHolder = (ViewHolder) convertView.getTag();
+
+                // update the item view
+                ShopListItem item = getItem(position);
+                viewHolder.tvTitle.setText(item.title);
+                viewHolder.tvDescription.setText(item.description);
+                viewHolder.tvAddress.setText(item.address);
+
+                return convertView;
+
             }
-
-            // update the item view
-            ShopListItem item = getItem(position);
-            viewHolder.tvTitle.setText(item.title);
-            viewHolder.tvDescription.setText(item.description);
-            viewHolder.tvAddress.setText(item.address);
-
-            return convertView;
         }
-
 
 
         /**
          * The view holder design pattern prevents using findViewById()
          * repeatedly in the getView() method of the adapter.
-         *
          */
         private static class ViewHolder {
             ImageView ivIcon;
@@ -294,20 +333,18 @@ public class ShopListViewFragment extends ListFragment {
             args = new Bundle();
         }
 
-        public void setContent(Bundle args){
+        public void setContent(Bundle args) {
             this.args = args;
         }
 
         @Override
         public Fragment getItem(int i) {
 
-            if(i == 0) {
+            if (i == 0) {
                 listFragment = new ShopListViewFragment();
                 listFragment.setArguments(args);
                 return listFragment;
-            }
-            else
-            {
+            } else {
                 mapFragment = new ShopMapViewFragment();
                 mapFragment.setArguments(args);
                 return mapFragment;
@@ -321,17 +358,17 @@ public class ShopListViewFragment extends ListFragment {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if(position==0)
+            if (position == 0)
                 return "Liste des magasins";
             else
                 return "Carte des magasins";
         }
 
-        public ShopListViewFragment getListFragment(){
+        public ShopListViewFragment getListFragment() {
             return listFragment;
         }
 
-        public ShopMapViewFragment getMapFragment(){
+        public ShopMapViewFragment getMapFragment() {
             return mapFragment;
         }
     }

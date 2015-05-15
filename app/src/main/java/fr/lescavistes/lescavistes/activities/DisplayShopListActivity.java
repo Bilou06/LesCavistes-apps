@@ -153,7 +153,6 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
@@ -186,9 +185,11 @@ public class DisplayShopListActivity extends AppCompatActivity
     }
 
     public void onShopSelected(int id) {
-
+        ShopListViewFragment listFrag = getListFragment();
+        if (listFrag!=null) {listFrag.setSelected(id);}
+        ShopMapViewFragment mapFrag = getMapFragment();
+        if (mapFrag!=null) {mapFrag.setSelected(id);}
     }
-
 
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
@@ -215,14 +216,9 @@ public class DisplayShopListActivity extends AppCompatActivity
 
                             }
 
-                            if (mSwipeLayout) {
-                                mShopsFragmentPagerAdapter.getListFragment().addContent(size, shopList);
-                                mShopsFragmentPagerAdapter.getMapFragment().addContent(size, shopList);
-                            }
-                            else{
-                                listViewFragment.addContent(size, shopList);
-                                mapsViewFragment.addContent(size, shopList);
-                            }
+                            getListFragment().addContent(size, shopList);
+                            getMapFragment().addContent(size, shopList);
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -242,6 +238,24 @@ public class DisplayShopListActivity extends AppCompatActivity
         // Add the request to the RequestQueue.
         MainApplication.getInstance().getRequestQueue().add(jsonRequest);
 
+    }
+
+
+    //helpers
+    private ShopListViewFragment getListFragment() {
+        if (mSwipeLayout) {
+            return mShopsFragmentPagerAdapter.getListFragment();
+        } else {
+            return listViewFragment;
+        }
+    }
+
+    private ShopMapViewFragment getMapFragment() {
+        if (mSwipeLayout) {
+            return mShopsFragmentPagerAdapter.getMapFragment();
+        } else {
+            return mapsViewFragment;
+        }
     }
 
 
