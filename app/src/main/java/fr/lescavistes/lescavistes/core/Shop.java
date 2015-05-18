@@ -79,5 +79,13 @@ public class Shop implements Serializable {
     public Double getLng() {
         return lng;
     }
+
+    public String getPhone(){
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
 }
 

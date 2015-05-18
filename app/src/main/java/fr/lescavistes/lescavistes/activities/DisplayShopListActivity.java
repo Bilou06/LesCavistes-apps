@@ -34,27 +34,20 @@ import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
 public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener {
 
-    public static final String SHOPS_KEY = "shops_key";
+    public static final String SHOPS_KEY = "SHOPS_KEY";
     public static final String LAT_KEY = "LAT_KEY";
     public static final String LNG_KEY = "LNG_KEY";
-    public static final String SIZE_KEY = "size_key";
-
-
-    private static final String WHERE = "where";
-    private static final String WHAT = "what";
-    private static final String LAT = "lat";
-    private static final String LNG = "lng";
-
+    public static final String SIZE_KEY = "SIZE_KEY";
 
     private static final String TAG = "Display Shop List";
     ShopListViewFragment.ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
 
-    private ShopListViewFragment listViewFragment;
-    private ShopMapViewFragment mapsViewFragment;
+    private ShopListViewFragment mListViewFragment;
+    private ShopMapViewFragment mMapsViewFragment;
 
-    private String lat, lng, where, what, size;
-    private ArrayList shopList;
+    private String mLat, mLng, mWhere, mWhat, mSize;
+    private ArrayList mShopList;
 
     private Boolean mSwipeLayout;
 
@@ -65,12 +58,12 @@ public class DisplayShopListActivity extends AppCompatActivity
         setContentView(R.layout.activity_display_shop_list);
 
         Intent intent = getIntent();
-        where = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
-        what = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
-        lng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
-        lat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
-        shopList = (ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE);
-        size = intent.getStringExtra(SearchActivity.NB_RESULTS);
+        mWhere = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
+        mWhat = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
+        mLng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
+        mLat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
+        mShopList = (ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE);
+        mSize = intent.getStringExtra(SearchActivity.NB_RESULTS);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
@@ -124,10 +117,10 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         // Create the content fragments : map and list
         Bundle args = new Bundle();
-        args.putSerializable(SHOPS_KEY, shopList);
-        args.putFloat(LAT_KEY, Float.parseFloat(lat));
-        args.putFloat(LNG_KEY, Float.parseFloat(lng));
-        args.putInt(SIZE_KEY, Integer.parseInt(size));
+        args.putSerializable(SHOPS_KEY, mShopList);
+        args.putFloat(LAT_KEY, Float.parseFloat(mLat));
+        args.putFloat(LNG_KEY, Float.parseFloat(mLng));
+        args.putInt(SIZE_KEY, Integer.parseInt(mSize));
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
@@ -137,16 +130,16 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         } else if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            listViewFragment = new ShopListViewFragment();
-            listViewFragment.setArguments(args);
-            transaction.add(R.id.list_shops, listViewFragment);
+            mListViewFragment = new ShopListViewFragment();
+            mListViewFragment.setArguments(args);
+            transaction.add(R.id.list_shops, mListViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
 
             transaction = getSupportFragmentManager().beginTransaction();
-            mapsViewFragment = new ShopMapViewFragment();
-            mapsViewFragment.setArguments(args);
-            transaction.add(R.id.map_shops, mapsViewFragment);
+            mMapsViewFragment = new ShopMapViewFragment();
+            mMapsViewFragment.setArguments(args);
+            transaction.add(R.id.map_shops, mMapsViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
         }
@@ -194,7 +187,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + mLat + "&lng=" + mLng + "&q=" + mWhat + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -246,7 +239,7 @@ public class DisplayShopListActivity extends AppCompatActivity
         if (mSwipeLayout) {
             return mShopsFragmentPagerAdapter.getListFragment();
         } else {
-            return listViewFragment;
+            return mListViewFragment;
         }
     }
 
@@ -254,7 +247,7 @@ public class DisplayShopListActivity extends AppCompatActivity
         if (mSwipeLayout) {
             return mShopsFragmentPagerAdapter.getMapFragment();
         } else {
-            return mapsViewFragment;
+            return mMapsViewFragment;
         }
     }
 

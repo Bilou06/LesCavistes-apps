@@ -17,7 +17,6 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -33,8 +32,8 @@ public class ShopMapViewFragment extends Fragment {
     GoogleMap map;
 
     private List<MarkerOptions> mMarkerOptions;
-    private int size;
-    private int selected;
+    private int mSize;
+    private int mSelected;
 
     private float lat, lng;
 
@@ -47,7 +46,7 @@ public class ShopMapViewFragment extends Fragment {
         if (getArguments() != null) {
             lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
             lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
-            size = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
+            mSize = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
 
             ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
             if (shopList != null)
@@ -108,7 +107,7 @@ public class ShopMapViewFragment extends Fragment {
     }
 
     public void addContent(int size, ArrayList<Shop> shopList) {
-        this.size = size;
+        this.mSize = size;
 
         for (Shop shop : shopList) {
             LatLng pos = new LatLng(shop.getLat(), shop.getLng());
@@ -122,11 +121,11 @@ public class ShopMapViewFragment extends Fragment {
     }
 
     public void setSelected(int position){
-        if(position == selected)
+        if(position == mSelected)
             return;
-        selected = position;
+        mSelected = position;
 
-        if (selected>-1){
+        if (mSelected >-1){
 
         }
 

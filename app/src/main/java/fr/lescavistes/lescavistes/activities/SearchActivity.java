@@ -36,7 +36,6 @@ import java.util.Locale;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
-import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
@@ -59,9 +58,9 @@ public class SearchActivity extends AppCompatActivity implements
     protected GoogleApiClient mGoogleApiClient;
     protected boolean mGoogleApiConnected = false;
 
-    Geocoder geocoder = null;
+    Geocoder mGeocoder = null;
 
-    private String lat, lng;
+    private String mLat, mLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,12 +72,12 @@ public class SearchActivity extends AppCompatActivity implements
         //Transform address in latlng
         if (MainApplication.isDebug()) {
             try {
-                geocoder = new Geocoder(this, Locale.getDefault());
+                mGeocoder = new Geocoder(this, Locale.getDefault());
             } catch (Exception e) {
-                geocoder = null;
+                mGeocoder = null;
             }
         } else {
-            geocoder = new Geocoder(this, Locale.getDefault());
+            mGeocoder = new Geocoder(this, Locale.getDefault());
         }
     }
 
@@ -172,8 +171,8 @@ public class SearchActivity extends AppCompatActivity implements
             if (mGoogleApiConnected) {
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
-                    lat = String.valueOf(mLastLocation.getLatitude());
-                    lng = String.valueOf(mLastLocation.getLongitude());
+                    mLat = String.valueOf(mLastLocation.getLatitude());
+                    mLng = String.valueOf(mLastLocation.getLongitude());
                 } else {
                     Toast.makeText(this, R.string.impossible_to_connect, Toast.LENGTH_LONG).show();
                     return;
@@ -185,10 +184,10 @@ public class SearchActivity extends AppCompatActivity implements
 
         } else {
             List<Address> addresses;
-            if (geocoder == null) {
+            if (mGeocoder == null) {
                 if (MainApplication.isDebug()) {
-                    lat = "44";
-                    lng = "3";
+                    mLat = "44";
+                    mLng = "3";
                 } else {
                     Toast.makeText(this, R.string.no_connection_geocoder, Toast.LENGTH_LONG).show();
                     return;
@@ -196,20 +195,20 @@ public class SearchActivity extends AppCompatActivity implements
 
             } else {
                 try {
-                    addresses = geocoder.getFromLocationName(where, 1);
+                    addresses = mGeocoder.getFromLocationName(where, 1);
                 } catch (IOException e) {
                     Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 if (addresses.size() > 0) {
-                    lat = String.valueOf(addresses.get(0).getLatitude());
-                    lng = String.valueOf(addresses.get(0).getLongitude());
+                    mLat = String.valueOf(addresses.get(0).getLatitude());
+                    mLng = String.valueOf(addresses.get(0).getLongitude());
 
                 } else {
                     if (MainApplication.isDebug()) {
-                        lat = "44";
-                        lng = "3";
+                        mLat = "44";
+                        mLng = "3";
                     } else {
                         Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
                         return;
@@ -219,7 +218,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + lat + "&lng=" + lng + "&q=" + what+"&c=0";
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + mLat + "&lng=" + mLng + "&q=" + what+"&c=0";
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -241,10 +240,10 @@ public class SearchActivity extends AppCompatActivity implements
 
                             }
                             intent.putExtra(NB_RESULTS, size);
-                            intent.putExtra(SHOPS_MESSAGE, (Serializable) shopList);
+                            intent.putExtra(SHOPS_MESSAGE, shopList);
 
-                            intent.putExtra(LAT_MESSAGE, lat);
-                            intent.putExtra(LNG_MESSAGE, lng);
+                            intent.putExtra(LAT_MESSAGE, mLat);
+                            intent.putExtra(LNG_MESSAGE, mLng);
 
                             intent.putExtra(WHERE_MESSAGE, where);
                             intent.putExtra(WHAT_MESSAGE, what);
