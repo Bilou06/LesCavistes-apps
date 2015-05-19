@@ -18,7 +18,7 @@ public class JSONObjectUtf8 extends JSONObject {
     public String optString(String name) {
         String ret = super.optString(name);
         try {
-            ret=  new String(ret.getBytes("ISO-8859-1"),"UTF-8");
+            ret = new String(ret.getBytes("ISO-8859-1"), "UTF-8");
         } catch (UnsupportedEncodingException e) {
         }
         return ret;

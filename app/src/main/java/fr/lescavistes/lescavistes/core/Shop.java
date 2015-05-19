@@ -27,7 +27,7 @@ public class Shop implements Serializable {
     private Double price_max;
 
     public Shop(JSONObject shop) {
-        name = shop.optString("name", "nom inconnu");
+        name = shop.optString("name");
         id = shop.optInt("id", 0);
         address = shop.optString("address");
         phone = shop.optString("phone");
