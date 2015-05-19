@@ -2,6 +2,9 @@ package fr.lescavistes.lescavistes.activities;
 
 
 import android.content.Intent;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
@@ -32,7 +35,8 @@ import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
 
 
 public class DisplayShopListActivity extends AppCompatActivity
-        implements ShopListViewFragment.OnShopSelectedListener {
+        implements ShopListViewFragment.OnShopSelectedListener,
+                    ShopMapViewFragment.OnShopSelectedListener{
 
     public static final String SHOPS_KEY = "SHOPS_KEY";
     public static final String LAT_KEY = "LAT_KEY";
@@ -40,7 +44,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     public static final String SIZE_KEY = "SIZE_KEY";
 
     private static final String TAG = "Display Shop List";
-    ShopListViewFragment.ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
+    ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
 
     private ShopListViewFragment mListViewFragment;
@@ -124,7 +128,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
-                    new ShopListViewFragment.ShopsFragmentPagerAdapter(getSupportFragmentManager());
+                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
             mShopsFragmentPagerAdapter.setContent(args);
             mViewPager.setAdapter(mShopsFragmentPagerAdapter);
 
@@ -178,10 +182,12 @@ public class DisplayShopListActivity extends AppCompatActivity
     }
 
     public void onShopSelected(int id) {
+
         ShopListViewFragment listFrag = getListFragment();
         if (listFrag!=null) {listFrag.setSelected(id);}
         ShopMapViewFragment mapFrag = getMapFragment();
-        if (mapFrag!=null) {mapFrag.setSelected(id);}
+        if (mapFrag!=null) {
+            mapFrag.setSelected(id);}
     }
 
     // Append more data into the adapter
@@ -233,7 +239,6 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-
     //helpers
     private ShopListViewFragment getListFragment() {
         if (mSwipeLayout) {
@@ -251,6 +256,66 @@ public class DisplayShopListActivity extends AppCompatActivity
         }
     }
 
+
+    /**
+     * Created by Sylvain on 06/05/2015.
+     */
+    public static class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
+
+        static final int NUM_ITEMS = 2;
+
+        private Bundle args;
+
+        private ShopListViewFragment mListFragment;
+        private ShopMapViewFragment mMapFragment;
+
+        public ShopsFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+            args = new Bundle();
+        }
+
+        public void setContent(Bundle args) {
+            this.args = args;
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+
+            if (i == 0) {
+                mListFragment = new ShopListViewFragment();
+                mListFragment.setArguments(args);
+                return mListFragment;
+            } else {
+                mMapFragment = new ShopMapViewFragment();
+                mMapFragment.setArguments(args);
+                return mMapFragment;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return NUM_ITEMS;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            if (position == 0)
+                return "Liste des magasins";
+            else
+                return "Carte des magasins";
+        }
+
+        public ShopListViewFragment getListFragment() {
+            if (mListFragment!= null) return mListFragment;
+            else return (ShopListViewFragment) getItem(0);
+        }
+
+        public ShopMapViewFragment getMapFragment() {
+            if (mMapFragment!= null) return mMapFragment;
+            else return (ShopMapViewFragment) getItem(1);
+        }
+
+    }
 
 }
 

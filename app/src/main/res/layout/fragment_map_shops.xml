@@ -1,10 +1,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
 
     <com.google.android.gms.maps.MapView android:id="@+id/mapview"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        android:layout_weight="1"/>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+            android:gravity="start"
+            android:layout_gravity="start"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/ic_action_left"
+            android:id="@+id/left_button"
+            android:clickable="true"
+            android:enabled="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:id="@+id/selected_view"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:gravity="end"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/ic_action_right"
+            android:id="@+id/right_button"
+            android:clickable="true"
+            android:enabled="false" />
+    </RelativeLayout>
 
 </LinearLayout>

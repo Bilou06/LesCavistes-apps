@@ -6,9 +6,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +36,7 @@ public class ShopListViewFragment extends ListFragment {
     private static final String SIZE = "SIZE";
 
     OnShopSelectedListener mCallback;
+
     private List<ShopListItem> mItems;        // ListView items list
     private ShopListAdapter mAdapter;
 
@@ -95,10 +93,10 @@ public class ShopListViewFragment extends ListFragment {
             public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
 
-                if (totalItemsCount > mSize)
+                if (totalItemsCount - 1 > mSize)
                     return;
 
-                ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount);
+                ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount-2);
             }
         });
     }
@@ -109,7 +107,7 @@ public class ShopListViewFragment extends ListFragment {
 
             position = position - 1;//due to header
 
-            if(mSelected != position) {
+            if (mSelected != position) {
                 //tell the activity
 
                 mCallback.onShopSelected(position);
@@ -192,13 +190,20 @@ public class ShopListViewFragment extends ListFragment {
             }
         this.mSize = size;
 
-        int index = getListView().getFirstVisiblePosition();
-        View v = getListView().getChildAt(0);
-        int top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
+        int index = 0;
+        int top = 0;
+        if (getListView()!=null) {
+            index = getListView().getFirstVisiblePosition();
+            View v = getListView().getChildAt(0);
+            top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
+        }
         mAdapter = new ShopListAdapter(getActivity(), mItems);
         mAdapter.setServerListSize(size);
         setListAdapter(mAdapter);
-        getListView().setSelectionFromTop(index, top);
+
+        if (getListView()!=null) {
+            getListView().setSelectionFromTop(index, top);
+        }
     }
 
     public void setSelected(int position) {
@@ -213,7 +218,7 @@ public class ShopListViewFragment extends ListFragment {
         final int firstListItemPosition = listView.getFirstVisiblePosition();
         final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
 
-        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
+        if (pos < firstListItemPosition || pos > lastListItemPosition) {
             return listView.getAdapter().getView(pos, null, listView);
         } else {
             final int childIndex = pos - firstListItemPosition;
@@ -224,6 +229,28 @@ public class ShopListViewFragment extends ListFragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
+    }
+
+    /**
+     * Created by Sylvain on 05/05/2015.
+     */
+    public static class ShopListItem implements Serializable {
+
+        public final String title;        // the text for the ListView item title
+        public final String description;  // the text for the ListView item description
+        public final String address;  // the text for the ListView item description
+        public final int id;
+        public final String email;
+        public final String phone;
+
+        public ShopListItem(Shop shop) {
+            this.title = shop.getName();
+            this.description = String.valueOf(shop.getDist()) + " km";
+            this.id = shop.getId();
+            this.address = shop.getAddress();
+            this.email = shop.getEmail();
+            this.phone = shop.getPhone();
+        }
     }
 
     public class ShopListAdapter extends GenericAdapter<ShopListItem> {
@@ -288,12 +315,12 @@ public class ShopListViewFragment extends ListFragment {
                 selectedViewHolder.tvDescription.setText(item.description);
                 selectedViewHolder.tvAddress.setText(item.address);
 
-                if(item.email.length() != 0){
+                if (item.email.length() != 0) {
                     selectedViewHolder.bMail.setText(item.email);
                     selectedViewHolder.bMail.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Button b = (Button)v;
+                            Button b = (Button) v;
                             String to = b.getText().toString();
 
                             Intent i = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
@@ -305,13 +332,13 @@ public class ShopListViewFragment extends ListFragment {
                     selectedViewHolder.bMail.setVisibility(View.GONE);
                 }
 
-                if(item.phone.length() != 0){
+                if (item.phone.length() != 0) {
                     selectedViewHolder.bPhone.setText(item.phone);
                     selectedViewHolder.bPhone.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            Button b = (Button)v;
-                            String phno = "tel:"+b.getText().toString();
+                            Button b = (Button) v;
+                            String phno = "tel:" + b.getText().toString();
 
                             Intent i = new Intent(Intent.ACTION_DIAL, Uri.parse(phno));
                             startActivity(i);
@@ -340,89 +367,12 @@ public class ShopListViewFragment extends ListFragment {
 
 
         private class SelectedViewHolder extends ViewHolder {
-            Button  bMail;
+            Button bMail;
             Button bPhone;
 
         }
 
     }
 
-    /**
-     * Created by Sylvain on 05/05/2015.
-     */
-    public static class ShopListItem implements Serializable {
 
-        public final String title;        // the text for the ListView item title
-        public final String description;  // the text for the ListView item description
-        public final String address;  // the text for the ListView item description
-        public final int id;
-        public final String email;
-        public final String phone;
-
-        public ShopListItem(Shop shop) {
-            this.title = shop.getName();
-            this.description = String.valueOf(shop.getDist()) + " km";
-            this.id = shop.getId();
-            this.address = shop.getAddress();
-            this.email = shop.getEmail();
-            this.phone = shop.getPhone();
-        }
-    }
-
-    /**
-     * Created by Sylvain on 06/05/2015.
-     */
-    public static class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
-
-        static final int NUM_ITEMS = 2;
-
-        private Bundle args;
-
-        private ShopListViewFragment mListFragment;
-        private ShopMapViewFragment mMapFragment;
-
-        public ShopsFragmentPagerAdapter(FragmentManager fm) {
-            super(fm);
-            args = new Bundle();
-        }
-
-        public void setContent(Bundle args) {
-            this.args = args;
-        }
-
-        @Override
-        public Fragment getItem(int i) {
-
-            if (i == 0) {
-                mListFragment = new ShopListViewFragment();
-                mListFragment.setArguments(args);
-                return mListFragment;
-            } else {
-                mMapFragment = new ShopMapViewFragment();
-                mMapFragment.setArguments(args);
-                return mMapFragment;
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return NUM_ITEMS;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            if (position == 0)
-                return "Liste des magasins";
-            else
-                return "Carte des magasins";
-        }
-
-        public ShopListViewFragment getListFragment() {
-            return mListFragment;
-        }
-
-        public ShopMapViewFragment getMapFragment() {
-            return mMapFragment;
-        }
-    }
 }
