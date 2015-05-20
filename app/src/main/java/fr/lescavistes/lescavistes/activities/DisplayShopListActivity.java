@@ -26,6 +26,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 import fr.lescavistes.lescavistes.MainApplication;
@@ -38,11 +39,8 @@ public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener,
                     ShopMapViewFragment.OnShopSelectedListener{
 
-    public static final String SHOPS_KEY = "SHOPS_KEY";
     public static final String LAT_KEY = "LAT_KEY";
     public static final String LNG_KEY = "LNG_KEY";
-    public static final String SIZE_KEY = "SIZE_KEY";
-    public static final String SELECTED_KEY = "SELECTED_KEY";
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -51,9 +49,9 @@ public class DisplayShopListActivity extends AppCompatActivity
     private ShopListViewFragment mListViewFragment;
     private ShopMapViewFragment mMapsViewFragment;
 
-    private String mLat, mLng, mWhere, mWhat, mSize;
-    private ArrayList mShopList;
-    private int mSelected;
+    private String mLat, mLng, mWhere, mWhat;
+
+    private Results results;
 
     private Boolean mSwipeLayout;
 
@@ -68,12 +66,12 @@ public class DisplayShopListActivity extends AppCompatActivity
         mWhat = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
         mLng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
         mLat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
-        mShopList = (ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE);
-        mSize = intent.getStringExtra(SearchActivity.NB_RESULTS);
+        results = new Results((ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE),
+                Integer.parseInt(intent.getStringExtra(SearchActivity.NB_RESULTS)),
+                0);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
-        mSelected = 0;
 
         if (mSwipeLayout) {
             // action bar
@@ -125,10 +123,8 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         // Create the content fragments : map and list
         Bundle args = new Bundle();
-        args.putSerializable(SHOPS_KEY, mShopList);
         args.putFloat(LAT_KEY, Float.parseFloat(mLat));
         args.putFloat(LNG_KEY, Float.parseFloat(mLng));
-        args.putInt(SIZE_KEY, Integer.parseInt(mSize));
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
@@ -187,16 +183,16 @@ public class DisplayShopListActivity extends AppCompatActivity
 
 
     public void onShopSelected(int id) {
-        mSelected = id;
+        results.selected = id;
         ShopListViewFragment listFrag = getListFragment();
         if (listFrag!=null) {listFrag.setSelected(id);}
         ShopMapViewFragment mapFrag = getMapFragment();
         if (mapFrag!=null) {
-            mapFrag.setSelected(id);}
+            mapFrag.refresh();}
     }
 
-    public int getShopSelected() {
-        return mSelected;
+    public Results getResults() {
+        return results;
     }
 
 
@@ -213,20 +209,21 @@ public class DisplayShopListActivity extends AppCompatActivity
                         try {
                             // Parsing json array response
 
-                            int size = Integer.parseInt(response.get(0).toString());
+                            results.size = Integer.parseInt(response.get(0).toString());
 
-                            ArrayList shopList = new ArrayList();
+                            ArrayList<Shop> newShops = new ArrayList<Shop>();
                             for (int i = 1; i < response.length(); i++) {
 
                                 JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
                                 Shop shop = new Shop(jsonShop);
 
-                                shopList.add(shop);
+                                results.shops.add(shop);
+                                newShops.add(shop);
 
                             }
 
-                            getListFragment().addContent(size, shopList);
-                            getMapFragment().addContent(size, shopList);
+                            getListFragment().addContent(results.size, newShops);
+                            getMapFragment().refresh();
 
 
                         } catch (JSONException e) {

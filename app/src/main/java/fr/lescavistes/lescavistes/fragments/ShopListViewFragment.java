@@ -22,6 +22,7 @@ import java.util.List;
 
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
+import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.EndlessScrollListener;
 import fr.lescavistes.lescavistes.utils.GenericAdapter;
@@ -41,8 +42,6 @@ public class ShopListViewFragment extends ListFragment {
 
     private List<ShopListItem> mItems;        // ListView items list
     private ShopListAdapter mAdapter;
-
-    private int mSize;
 
     @Override
     public void onAttach(Activity activity) {
@@ -68,9 +67,8 @@ public class ShopListViewFragment extends ListFragment {
 
         mItems = new ArrayList<>();
         if (getArguments() != null) {
-            mSize = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
 
-            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
+            ArrayList<Shop> shopList = (ArrayList<Shop>) mCallback.getResults().shops;
             if (shopList != null)
                 for (Shop shop : shopList) {
                     mItems.add(new ShopListItem(shop));
@@ -93,7 +91,7 @@ public class ShopListViewFragment extends ListFragment {
             public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
 
-                if (totalItemsCount - 1 > mSize)
+                if (totalItemsCount - 1 >  mCallback.getResults().size)
                     return;
 
                 ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount-2);
@@ -107,7 +105,7 @@ public class ShopListViewFragment extends ListFragment {
 
             position = position - 1;//due to header
 
-            if (((DisplayShopListActivity)getActivity()).getShopSelected() != position) {
+            if ( mCallback.getResults().selected != position) {
                 //tell the activity
 
                 mCallback.onShopSelected(position);
@@ -134,19 +132,18 @@ public class ShopListViewFragment extends ListFragment {
 
         if (savedInstanceState != null) {
             mItems = (List<ShopListItem>) savedInstanceState.getSerializable(ITEMS);
-            mSize = savedInstanceState.getInt(SIZE);
         }
 
         //add header
         View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
         TextView tv = (TextView) v.findViewById(R.id.nbResults);
         ;
-        if (mSize == 0) {
+        if ( mCallback.getResults().size == 0) {
             tv.setText("Aucun résultat");
-        } else if (mSize == 1) {
+        } else if (mCallback.getResults().size == 1) {
             tv.setText("1 résultat");
         } else {
-            tv.setText(String.valueOf(mSize) + " résultats");
+            tv.setText(String.valueOf(mCallback.getResults().size) + " résultats");
         }
 
         this.getListView().addHeaderView(v);
@@ -154,12 +151,12 @@ public class ShopListViewFragment extends ListFragment {
         // initialize and set the list adapter
 
         mAdapter = new ShopListAdapter(getActivity(), mItems);
-        mAdapter.setServerListSize(mSize);
-        mAdapter.selectedItem(mCallback.getShopSelected());
+        mAdapter.setServerListSize(mCallback.getResults().size);
+        mAdapter.selectedItem(mCallback.getResults().selected);
         setListAdapter(mAdapter);
 
         // select the element
-        int selected = mCallback.getShopSelected();
+        int selected = mCallback.getResults().selected;
         if (selected > -1 && selected < mItems.size()) {
             ShopListItem selectedItem = mItems.get(selected);
             if (selectedItem != null) {
@@ -175,7 +172,6 @@ public class ShopListViewFragment extends ListFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putSerializable(ITEMS, (Serializable) mItems);
-        outState.putInt(SIZE, mSize);
     }
 
 
@@ -188,7 +184,6 @@ public class ShopListViewFragment extends ListFragment {
             for (Shop shop : shopList) {
                 mItems.add(new ShopListItem(shop));
             }
-        this.mSize = size;
 
         int index = 0;
         int top = 0;
@@ -207,7 +202,7 @@ public class ShopListViewFragment extends ListFragment {
     }
 
     public void setSelected(int position) {
-        mAdapter.selectedItem(mCallback.getShopSelected());
+        mAdapter.selectedItem(mCallback.getResults().selected);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -226,7 +221,7 @@ public class ShopListViewFragment extends ListFragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
-        public int getShopSelected();
+        public Results getResults();
     }
 
     /**

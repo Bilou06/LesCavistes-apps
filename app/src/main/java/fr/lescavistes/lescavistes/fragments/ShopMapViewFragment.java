@@ -31,8 +31,8 @@ import java.util.List;
 
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
+import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
-import fr.lescavistes.lescavistes.utils.FragmentLifecycle;
 
 
 public class ShopMapViewFragment extends Fragment {
@@ -42,9 +42,7 @@ public class ShopMapViewFragment extends Fragment {
     private GoogleMap map;
     private LatLngBounds.Builder bounds;
     private boolean boundsSet;
-    private List<Shop> mShops;
     private HashMap<Marker, Shop> shopsMarkerMap;
-    private int mSize;
 
     private float lat, lng;
     private Button leftButton, rightButton;
@@ -86,9 +84,6 @@ public class ShopMapViewFragment extends Fragment {
         if (getArguments() != null) {
             lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
             lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
-            mSize = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
-
-            mShops = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
         }
 
         // Gets the MapView from the XML layout and creates it
@@ -111,7 +106,7 @@ public class ShopMapViewFragment extends Fragment {
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getShopSelected();
+                    int selected = mCallback.getResults().selected;
                     if (selected == 0)
                         return;
                     selected--;
@@ -123,13 +118,13 @@ public class ShopMapViewFragment extends Fragment {
         if (rightButton != null)
             rightButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getShopSelected();
-                    if (selected >= mSize)
+                    int selected = mCallback.getResults().selected;
+                    if (selected >= mCallback.getResults().size)
                         return;
                     selected++;
 
-                    if (selected >= mShops.size()) {
-                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mShops.size());
+                    if (selected >= mCallback.getResults().shops.size()) {
+                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mCallback.getResults().shops.size());
                         return;
                     }
 
@@ -176,14 +171,14 @@ public class ShopMapViewFragment extends Fragment {
         }
         LatLngBounds previousBounds = bounds.build();
 
-        for (int i = 0; i < mShops.size(); i++) {
-            Shop shop = mShops.get(i);
+        for (int i = 0; i < mCallback.getResults().shops.size(); i++) {
+            Shop shop = mCallback.getResults().shops.get(i);
             LatLng pos = new LatLng(shop.getLat(), shop.getLng());
             MarkerOptions m = new MarkerOptions()
                     .position(pos)
                     .title(shop.getName());
             Marker marker;
-            if (i != mCallback.getShopSelected()) {
+            if (i != mCallback.getResults().selected) {
                 //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
                 if (!boundsSet) {
@@ -220,7 +215,7 @@ public class ShopMapViewFragment extends Fragment {
 
     private void updateButtons() {
 
-        int selected = mCallback.getShopSelected();
+        int selected = mCallback.getResults().selected;
 
         if (leftButton != null)
             if (selected != 0) {
@@ -231,11 +226,11 @@ public class ShopMapViewFragment extends Fragment {
                 leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
             }
 
-        if (selectedView != null && mShops != null && selected < mShops.size())
-            selectedView.setText(mShops.get(selected).getName());
+        if (selectedView != null && mCallback.getResults().shops != null && selected < mCallback.getResults().shops.size())
+            selectedView.setText(mCallback.getResults().shops.get(selected).getName());
 
         if (rightButton != null)
-            if (selected != mSize - 1) {
+            if (selected != mCallback.getResults().size - 1) {
                 rightButton.setEnabled(true);
                 rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
             } else {
@@ -246,11 +241,11 @@ public class ShopMapViewFragment extends Fragment {
 
     public void onClick(Marker m) {
         Shop shop = shopsMarkerMap.get(m);
-        mCallback.onShopSelected(mShops.indexOf(shop));
+        mCallback.onShopSelected(mCallback.getResults().shops.indexOf(shop));
         refresh();
     }
 
-    private void refresh() {
+    public void refresh() {
         map.clear();
         setMarkers();
         updateButtons();
@@ -274,24 +269,10 @@ public class ShopMapViewFragment extends Fragment {
         mapView.onLowMemory();
     }
 
-    public void addContent(int size, ArrayList<Shop> shopList) {
-        this.mSize = size;
-
-        for (Shop shop : shopList) {
-            mShops.add(shop);
-        }
-
-        refresh();
-    }
-
-    public void setSelected(int position) {
-        refresh();
-    }
-
 
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
-        public int getShopSelected();
+        public Results getResults();
     }
 }
