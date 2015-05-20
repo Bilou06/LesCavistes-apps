@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -33,6 +32,7 @@ import java.util.List;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.utils.FragmentLifecycle;
 
 
 public class ShopMapViewFragment extends Fragment {
@@ -45,11 +45,12 @@ public class ShopMapViewFragment extends Fragment {
     private List<Shop> mShops;
     private HashMap<Marker, Shop> shopsMarkerMap;
     private int mSize;
-    private int mSelected;
 
     private float lat, lng;
-    private Button leftButton, rigthButton;
+    private Button leftButton, rightButton;
     private TextView selectedView;
+
+    private static final String TAG = "Map Fragment";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,7 +59,6 @@ public class ShopMapViewFragment extends Fragment {
         if (shopsMarkerMap == null)
             shopsMarkerMap = new HashMap<Marker, Shop>();
 
-        mSelected = 0;
         boundsSet = false;
     }
 
@@ -105,37 +105,40 @@ public class ShopMapViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         leftButton = (Button) getActivity().findViewById(R.id.left_button);
-        rigthButton = (Button) getActivity().findViewById(R.id.right_button);
+        rightButton = (Button) getActivity().findViewById(R.id.right_button);
         selectedView = (TextView) getActivity().findViewById(R.id.selected_view);
 
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if (mSelected == 0)
+                    int selected = mCallback.getShopSelected();
+                    if (selected == 0)
                         return;
-                    mSelected--;
-                    refresh();
+                    selected--;
+
+                    mCallback.onShopSelected(selected);
                 }
             });
 
-        if (rigthButton != null)
-            rigthButton.setOnClickListener(new View.OnClickListener() {
+        if (rightButton != null)
+            rightButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if (mSelected >= mSize)
+                    int selected = mCallback.getShopSelected();
+                    if (selected >= mSize)
                         return;
-                    mSelected++;
+                    selected++;
 
-                    if (mSelected >= mShops.size()) {
+                    if (selected >= mShops.size()) {
                         ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mShops.size());
                         return;
                     }
-                    refresh();
+
+                    mCallback.onShopSelected(selected);
                 }
             });
 
         updateButtons();
     }
-
 
     private void initMap() {
         // Gets to GoogleMap from the MapView and does initialization stuff
@@ -180,7 +183,7 @@ public class ShopMapViewFragment extends Fragment {
                     .position(pos)
                     .title(shop.getName());
             Marker marker;
-            if (i != mSelected) {
+            if (i != mCallback.getShopSelected()) {
                 //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
                 if (!boundsSet) {
@@ -217,8 +220,10 @@ public class ShopMapViewFragment extends Fragment {
 
     private void updateButtons() {
 
+        int selected = mCallback.getShopSelected();
+
         if (leftButton != null)
-            if (mSelected != 0) {
+            if (selected != 0) {
                 leftButton.setEnabled(true);
                 leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left_enabled));
             } else {
@@ -226,27 +231,23 @@ public class ShopMapViewFragment extends Fragment {
                 leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
             }
 
-        if (selectedView != null && mShops != null && mSelected < mShops.size())
-            selectedView.setText(mShops.get(mSelected).getName());
+        if (selectedView != null && mShops != null && selected < mShops.size())
+            selectedView.setText(mShops.get(selected).getName());
 
-        if (rigthButton != null)
-            if (mSelected != mSize - 1) {
-                rigthButton.setEnabled(true);
-                rigthButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
+        if (rightButton != null)
+            if (selected != mSize - 1) {
+                rightButton.setEnabled(true);
+                rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
             } else {
-                rigthButton.setEnabled(false);
-                rigthButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right));
+                rightButton.setEnabled(false);
+                rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right));
             }
     }
 
     public void onClick(Marker m) {
         Shop shop = shopsMarkerMap.get(m);
-
-        mSelected = mShops.indexOf(shop);
-
+        mCallback.onShopSelected(mShops.indexOf(shop));
         refresh();
-
-        mCallback.onShopSelected(mSelected);
     }
 
     private void refresh() {
@@ -284,13 +285,13 @@ public class ShopMapViewFragment extends Fragment {
     }
 
     public void setSelected(int position) {
-        mSelected = position;
-
+        refresh();
     }
 
 
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
+        public int getShopSelected();
     }
 }

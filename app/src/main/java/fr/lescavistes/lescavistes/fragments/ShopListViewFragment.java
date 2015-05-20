@@ -35,12 +35,13 @@ public class ShopListViewFragment extends ListFragment {
     private static final String ITEMS = "ITEMS";
     private static final String SIZE = "SIZE";
 
+    private static final String TAG = "List Fragment";
+
     OnShopSelectedListener mCallback;
 
     private List<ShopListItem> mItems;        // ListView items list
     private ShopListAdapter mAdapter;
 
-    private int mSelected;
     private int mSize;
 
     @Override
@@ -65,7 +66,6 @@ public class ShopListViewFragment extends ListFragment {
             return;
         }
 
-        mSelected = -1;
         mItems = new ArrayList<>();
         if (getArguments() != null) {
             mSize = getArguments().getInt(DisplayShopListActivity.SIZE_KEY);
@@ -107,7 +107,7 @@ public class ShopListViewFragment extends ListFragment {
 
             position = position - 1;//due to header
 
-            if (mSelected != position) {
+            if (((DisplayShopListActivity)getActivity()).getShopSelected() != position) {
                 //tell the activity
 
                 mCallback.onShopSelected(position);
@@ -115,7 +115,6 @@ public class ShopListViewFragment extends ListFragment {
                 // retrieve theListView item
                 ShopListItem item = mItems.get(position);
 
-                mSelected = position;
 
                 // change the layout
                 v.setSelected(true);
@@ -135,7 +134,6 @@ public class ShopListViewFragment extends ListFragment {
 
         if (savedInstanceState != null) {
             mItems = (List<ShopListItem>) savedInstanceState.getSerializable(ITEMS);
-            mSelected = savedInstanceState.getInt(SELECTED);
             mSize = savedInstanceState.getInt(SIZE);
         }
 
@@ -157,16 +155,17 @@ public class ShopListViewFragment extends ListFragment {
 
         mAdapter = new ShopListAdapter(getActivity(), mItems);
         mAdapter.setServerListSize(mSize);
-        mAdapter.selectedItem(mSelected);
+        mAdapter.selectedItem(mCallback.getShopSelected());
         setListAdapter(mAdapter);
 
         // select the element
-        if (mSelected > -1 && mSelected < mItems.size()) {
-            ShopListItem selectedItem = mItems.get(mSelected);
+        int selected = mCallback.getShopSelected();
+        if (selected > -1 && selected < mItems.size()) {
+            ShopListItem selectedItem = mItems.get(selected);
             if (selectedItem != null) {
-                getListView().setSelection(mSelected);
-                getListView().setItemChecked(mSelected, true);
-                getListView().getAdapter().getView(mSelected, null, null).setSelected(true);
+                getListView().setSelection(selected);
+                getListView().setItemChecked(selected, true);
+                getListView().getAdapter().getView(selected, null, null).setSelected(true);
                 getListView().requestFocus();
             }
         }
@@ -175,10 +174,11 @@ public class ShopListViewFragment extends ListFragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(SELECTED, mSelected);
         outState.putSerializable(ITEMS, (Serializable) mItems);
         outState.putInt(SIZE, mSize);
     }
+
+
 
     public void addContent(int size, ArrayList<Shop> shopList) {
         if (mItems == null)
@@ -207,11 +207,8 @@ public class ShopListViewFragment extends ListFragment {
     }
 
     public void setSelected(int position) {
-        if (position == mSelected)
-            return;
-
-        //set new selection
-        mSelected = position;
+        mAdapter.selectedItem(mCallback.getShopSelected());
+        mAdapter.notifyDataSetChanged();
     }
 
     private View getViewByPosition(int pos, ListView listView) {
@@ -229,6 +226,7 @@ public class ShopListViewFragment extends ListFragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
+        public int getShopSelected();
     }
 
     /**

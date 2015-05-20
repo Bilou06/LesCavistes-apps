@@ -42,6 +42,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     public static final String LAT_KEY = "LAT_KEY";
     public static final String LNG_KEY = "LNG_KEY";
     public static final String SIZE_KEY = "SIZE_KEY";
+    public static final String SELECTED_KEY = "SELECTED_KEY";
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -52,6 +53,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     private String mLat, mLng, mWhere, mWhat, mSize;
     private ArrayList mShopList;
+    private int mSelected;
 
     private Boolean mSwipeLayout;
 
@@ -71,7 +73,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
-
+        mSelected = 0;
 
         if (mSwipeLayout) {
             // action bar
@@ -109,13 +111,15 @@ public class DisplayShopListActivity extends AppCompatActivity
 
             mViewPager.setOnPageChangeListener(
                     new ViewPager.SimpleOnPageChangeListener() {
+
                         @Override
-                        public void onPageSelected(int position) {
+                        public void onPageSelected(int newPosition) {
                             // When swiping between pages, select the
                             // corresponding tab.
-                            actionBar.setSelectedNavigationItem(position);
+                            actionBar.setSelectedNavigationItem(newPosition);
                         }
                     });
+
         }
 
 
@@ -181,14 +185,20 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-    public void onShopSelected(int id) {
 
+    public void onShopSelected(int id) {
+        mSelected = id;
         ShopListViewFragment listFrag = getListFragment();
         if (listFrag!=null) {listFrag.setSelected(id);}
         ShopMapViewFragment mapFrag = getMapFragment();
         if (mapFrag!=null) {
             mapFrag.setSelected(id);}
     }
+
+    public int getShopSelected() {
+        return mSelected;
+    }
+
 
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
@@ -280,7 +290,6 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         @Override
         public Fragment getItem(int i) {
-
             if (i == 0) {
                 mListFragment = new ShopListViewFragment();
                 mListFragment.setArguments(args);
@@ -316,7 +325,6 @@ public class DisplayShopListActivity extends AppCompatActivity
         }
 
     }
-
 }
 
 
