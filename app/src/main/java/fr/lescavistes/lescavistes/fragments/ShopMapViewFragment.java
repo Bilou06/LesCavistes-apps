@@ -20,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -36,12 +37,11 @@ import fr.lescavistes.lescavistes.core.Shop;
 
 public class ShopMapViewFragment extends Fragment {
 
+    OnShopSelectedListener mCallback;
     private MapView mapView;
     private GoogleMap map;
     private LatLngBounds.Builder bounds;
-
-    OnShopSelectedListener mCallback;
-
+    private boolean boundsSet;
     private List<Shop> mShops;
     private HashMap<Marker, Shop> shopsMarkerMap;
     private int mSize;
@@ -59,6 +59,7 @@ public class ShopMapViewFragment extends Fragment {
             shopsMarkerMap = new HashMap<Marker, Shop>();
 
         mSelected = 0;
+        boundsSet = false;
     }
 
     @Override
@@ -110,7 +111,7 @@ public class ShopMapViewFragment extends Fragment {
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if(mSelected == 0)
+                    if (mSelected == 0)
                         return;
                     mSelected--;
                     refresh();
@@ -120,11 +121,11 @@ public class ShopMapViewFragment extends Fragment {
         if (rigthButton != null)
             rigthButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    if(mSelected >= mSize)
+                    if (mSelected >= mSize)
                         return;
                     mSelected++;
 
-                    if(mSelected>=mShops.size()){
+                    if (mSelected >= mShops.size()) {
                         ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mShops.size());
                         return;
                     }
@@ -149,17 +150,32 @@ public class ShopMapViewFragment extends Fragment {
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 14);
         map.moveCamera(cameraUpdate);
 
+        map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition position) {
+                bounds = new LatLngBounds.Builder();
+                bounds.include(map.getProjection().getVisibleRegion().latLngBounds.northeast);
+                bounds.include(map.getProjection().getVisibleRegion().latLngBounds.southwest);
+            }
+        });
+
         setMarkers();
     }
 
     private void setMarkers() {
         //map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
 
-        bounds = new LatLngBounds.Builder();
+        boolean camToUpdate = false;
+        if (bounds == null) {
+            bounds = new LatLngBounds.Builder();
+            bounds.include(new LatLng(lat, lng));
+            camToUpdate = true;
+        }
+        LatLngBounds previousBounds = bounds.build();
+
         for (int i = 0; i < mShops.size(); i++) {
             Shop shop = mShops.get(i);
             LatLng pos = new LatLng(shop.getLat(), shop.getLng());
-            bounds.include(pos);
             MarkerOptions m = new MarkerOptions()
                     .position(pos)
                     .title(shop.getName());
@@ -167,18 +183,27 @@ public class ShopMapViewFragment extends Fragment {
             if (i != mSelected) {
                 //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
+                if (!boundsSet) {
+                    camToUpdate = camToUpdate || !previousBounds.contains(pos);
+                    bounds.include(pos);
+
+                }
             } else {
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                camToUpdate = camToUpdate || !previousBounds.contains(pos);
+                bounds.include(pos);
+                boundsSet = true;
             }
             shopsMarkerMap.put(marker, shop);
         }
 
-        map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-            @Override
-            public void onMapLoaded() {
-                map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 50));
-            }
-        });
+        if (camToUpdate)
+            map.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                @Override
+                public void onMapLoaded() {
+                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20));
+                }
+            });
 
         //set listeners
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -205,7 +230,7 @@ public class ShopMapViewFragment extends Fragment {
             selectedView.setText(mShops.get(mSelected).getName());
 
         if (rigthButton != null)
-            if (mSelected != mSize-1) {
+            if (mSelected != mSize - 1) {
                 rigthButton.setEnabled(true);
                 rigthButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
             } else {
@@ -224,7 +249,7 @@ public class ShopMapViewFragment extends Fragment {
         mCallback.onShopSelected(mSelected);
     }
 
-    private void refresh(){
+    private void refresh() {
         map.clear();
         setMarkers();
         updateButtons();
