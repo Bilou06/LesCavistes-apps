@@ -14,15 +14,16 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Results;
+import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.EndlessScrollListener;
 import fr.lescavistes.lescavistes.utils.GenericAdapter;
@@ -43,6 +44,8 @@ public class ShopListViewFragment extends ListFragment {
     private List<ShopListItem> mItems;        // ListView items list
     private ShopListAdapter mAdapter;
 
+    EventBus bus = EventBus.getDefault();
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -61,6 +64,8 @@ public class ShopListViewFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        bus.register(this);
+
         if (mItems != null) {
             return;
         }
@@ -68,7 +73,7 @@ public class ShopListViewFragment extends ListFragment {
         mItems = new ArrayList<>();
         if (getArguments() != null) {
 
-            ArrayList<Shop> shopList = (ArrayList<Shop>) mCallback.getResults().shops;
+            ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
             if (shopList != null)
                 for (Shop shop : shopList) {
                     mItems.add(new ShopListItem(shop));
@@ -119,9 +124,6 @@ public class ShopListViewFragment extends ListFragment {
 
                 mAdapter.selectedItem(position);
                 mAdapter.notifyDataSetChanged();
-
-                // do something
-                Toast.makeText(getActivity(), item.title, Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -174,7 +176,14 @@ public class ShopListViewFragment extends ListFragment {
         outState.putSerializable(ITEMS, (Serializable) mItems);
     }
 
-
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(mCallback!=null) {
+            mAdapter.selectedItem(mCallback.getResults().selected);
+            mAdapter.notifyDataSetChanged();
+        }
+    }
 
     public void addContent(int size, ArrayList<Shop> shopList) {
         if (mItems == null)
@@ -201,7 +210,7 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
-    public void setSelected(int position) {
+    public void onEvent(SelectionChangedEvent event) {
         mAdapter.selectedItem(mCallback.getResults().selected);
         mAdapter.notifyDataSetChanged();
     }

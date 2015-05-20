@@ -25,13 +25,13 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
+import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Results;
+import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.core.Shop;
 
 
@@ -50,9 +50,13 @@ public class ShopMapViewFragment extends Fragment {
 
     private static final String TAG = "Map Fragment";
 
+    EventBus bus = EventBus.getDefault();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        bus.register(this);
 
         if (shopsMarkerMap == null)
             shopsMarkerMap = new HashMap<Marker, Shop>();
@@ -242,13 +246,16 @@ public class ShopMapViewFragment extends Fragment {
     public void onClick(Marker m) {
         Shop shop = shopsMarkerMap.get(m);
         mCallback.onShopSelected(mCallback.getResults().shops.indexOf(shop));
-        refresh();
     }
 
     public void refresh() {
         map.clear();
         setMarkers();
         updateButtons();
+    }
+
+    public void onEvent(SelectionChangedEvent event) {
+        refresh();
     }
 
     @Override

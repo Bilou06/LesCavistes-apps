@@ -11,6 +11,11 @@
         android:layout_height="match_parent"
         android:layout_weight="1"/>
 
+    <LinearLayout
+        android:layout_width="5px"
+        android:layout_height="match_parent"
+        android:background="@drawable/greyline"/>
+
     <RelativeLayout
         android:id="@+id/map_shops"
         android:layout_width="fill_parent"

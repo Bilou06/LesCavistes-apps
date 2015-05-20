@@ -26,7 +26,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.core.Results;
+import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 import fr.lescavistes.lescavistes.MainApplication;
@@ -41,6 +43,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     public static final String LAT_KEY = "LAT_KEY";
     public static final String LNG_KEY = "LNG_KEY";
+    public static final String SHOPS_KEY = "SHOPS_KEY";
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -125,6 +128,7 @@ public class DisplayShopListActivity extends AppCompatActivity
         Bundle args = new Bundle();
         args.putFloat(LAT_KEY, Float.parseFloat(mLat));
         args.putFloat(LNG_KEY, Float.parseFloat(mLng));
+        args.putSerializable(SHOPS_KEY, results.shops);
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
@@ -181,14 +185,11 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-
     public void onShopSelected(int id) {
         results.selected = id;
-        ShopListViewFragment listFrag = getListFragment();
-        if (listFrag!=null) {listFrag.setSelected(id);}
-        ShopMapViewFragment mapFrag = getMapFragment();
-        if (mapFrag!=null) {
-            mapFrag.refresh();}
+
+        EventBus bus = EventBus.getDefault();
+        bus.post(new SelectionChangedEvent(id));
     }
 
     public Results getResults() {
