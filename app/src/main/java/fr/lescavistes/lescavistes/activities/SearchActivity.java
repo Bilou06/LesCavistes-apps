@@ -1,7 +1,13 @@
 package fr.lescavistes.lescavistes.activities;
 
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkError;
+import com.android.volley.NoConnectionError;
+import com.android.volley.ParseError;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.common.ConnectionResult;
@@ -259,9 +265,16 @@ public class SearchActivity extends AppCompatActivity implements
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(),
-                        "Impossible de retrouver les informations, veuillez réessayer",
-                        Toast.LENGTH_LONG).show();
+
+                if (error instanceof TimeoutError || error instanceof AuthFailureError || error instanceof ServerError || error instanceof ParseError) {
+                    Toast.makeText(getApplicationContext(),
+                            "Le site est en maintenance. Merci de réessayer dans quelques minutes",
+                            Toast.LENGTH_LONG).show();
+                } else if (error instanceof NoConnectionError || error instanceof NetworkError) {
+                    Toast.makeText(getApplicationContext(),
+                            "Impossible de se connecter à internet. Merci de vérifier votre connexion.",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
         // Add the request to the RequestQueue.
