@@ -12,9 +12,19 @@ public class Results<T> implements Serializable{
     public int size;
     public ArrayList<T> items;
 
-    public Results(ArrayList items, int size, int selected){
-        this.items=items;
-        this.size=size;
-        this.selected=selected;
+    public Results(){
+        this.items=new ArrayList<T>();
+        this.size=0;
+        this.selected=0;
+    }
+
+    public T getSelected(){
+        if(items == null)
+            return null;
+
+        if(selected >= items.size())
+            return null;
+
+        return items.get(selected);
     }
 }

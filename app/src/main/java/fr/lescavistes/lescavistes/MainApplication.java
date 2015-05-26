@@ -9,6 +9,8 @@ import android.app.Application;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
+import fr.lescavistes.lescavistes.core.Model;
+
 
 public class MainApplication extends Application {
 
@@ -18,11 +20,15 @@ public class MainApplication extends Application {
 
     private RequestQueue mRequestQueue;
 
+    private static Model model;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         mRequestQueue = Volley.newRequestQueue(this);
+
+        model = new Model();
 
         sInstance = this;
     }
@@ -38,4 +44,8 @@ public class MainApplication extends Application {
     public static boolean isDebug() { return DEBUG; }
 
     public static String baseUrl() {return URL;}
+
+    public synchronized static Model getModel(){
+        return model;
+    }
 }

@@ -36,7 +36,7 @@ public class ShopInfoViewFragment extends Fragment {
         final View v = inflater.inflate(R.layout.fragment_info_shop, container, false);
 
         if (getArguments() != null) {
-            mShop = (Shop) getArguments().getSerializable(DisplayShopInfoActivity.SHOP_KEY);
+            mShop = MainApplication.getModel().shopList.getSelected();
 
             TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
             tvTitle.setText(mShop.getName());

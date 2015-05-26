@@ -1,5 +1,6 @@
 package fr.lescavistes.lescavistes.fragments;
 
+import android.graphics.AvoidXfermode;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -42,6 +43,7 @@ import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopInfoActivity;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
+import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Shop;
 
 /**
@@ -53,20 +55,18 @@ public class ShopGotoViewFragment extends Fragment {
     private static final String TAG = "GOTO Fragment";
     private MapView mapView;
     private GoogleMap map;
-    private float lat, lng;
-    private Shop shop;
+    private Model model;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        model = MainApplication.getModel();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_goto_shop, container, false);
-
-        //read data
-
-        if (getArguments() != null) {
-            lat = getArguments().getFloat(DisplayShopInfoActivity.LAT_KEY);
-            lng = getArguments().getFloat(DisplayShopInfoActivity.LNG_KEY);
-            shop = (Shop)getArguments().getSerializable(DisplayShopInfoActivity.SHOP_KEY);
-        }
 
         // Gets the MapView from the XML layout and creates it
         mapView = (MapView) v.findViewById(R.id.mapview);
@@ -88,7 +88,7 @@ public class ShopGotoViewFragment extends Fragment {
         MapsInitializer.initialize(this.getActivity());
 
         // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 14);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
         map.moveCamera(cameraUpdate);
 
         setMarkers();
@@ -97,7 +97,8 @@ public class ShopGotoViewFragment extends Fragment {
     }
 
     private void setPath(){
-        String url = makepathURL(lat, lng, shop.getLat(), shop.getLng());
+        Shop shop = model.shopList.getSelected();
+        String url = makepathURL(model.lat, model.lng, shop.getLat(), shop.getLng());
 
         StringRequest stringRequest = new StringRequest(url,
                 new Response.Listener<String>() {
@@ -138,8 +139,9 @@ public class ShopGotoViewFragment extends Fragment {
         //map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
 
         final LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-        bounds.include(new LatLng(lat, lng));
+        bounds.include(new LatLng(model.lat, model.lng));
 
+        Shop shop = model.shopList.getSelected();
         LatLng pos = new LatLng(shop.getLat(), shop.getLng());
         MarkerOptions m = new MarkerOptions()
                 .position(pos)

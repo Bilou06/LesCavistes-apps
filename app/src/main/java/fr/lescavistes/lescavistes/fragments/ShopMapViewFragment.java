@@ -28,8 +28,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.HashMap;
 
 import de.greenrobot.event.EventBus;
+import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
+import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.core.Shop;
@@ -44,9 +46,10 @@ public class ShopMapViewFragment extends Fragment {
     private boolean boundsSet;
     private HashMap<Marker, Shop> shopsMarkerMap;
 
-    private float lat, lng;
     private Button leftButton, rightButton;
     private TextView selectedView;
+
+    private Model model;
 
     private static final String TAG = "Map Fragment";
 
@@ -55,6 +58,8 @@ public class ShopMapViewFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        model = MainApplication.getModel();
 
         bus.register(this);
 
@@ -83,12 +88,6 @@ public class ShopMapViewFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_map_shops, container, false);
 
-        //read data
-        if (getArguments() != null) {
-            lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
-            lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
-        }
-
         // Gets the MapView from the XML layout and creates it
         mapView = (MapView) v.findViewById(R.id.mapview);
         mapView.onCreate(savedInstanceState);
@@ -109,7 +108,7 @@ public class ShopMapViewFragment extends Fragment {
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getmShops().selected;
+                    int selected = model.shopList.selected;
                     if (selected == 0)
                         return;
                     selected--;
@@ -121,13 +120,13 @@ public class ShopMapViewFragment extends Fragment {
         if (rightButton != null)
             rightButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getmShops().selected;
-                    if (selected >= mCallback.getmShops().size)
+                    int selected = model.shopList.selected;
+                    if (selected >= model.shopList.size)
                         return;
                     selected++;
 
-                    if (selected >= mCallback.getmShops().items.size()) {
-                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mCallback.getmShops().items.size());
+                    if (selected >= model.shopList.items.size()) {
+                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(model.shopList.items.size());
                         return;
                     }
 
@@ -149,7 +148,7 @@ public class ShopMapViewFragment extends Fragment {
         MapsInitializer.initialize(this.getActivity());
 
         // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 14);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
         map.moveCamera(cameraUpdate);
 
         map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -170,25 +169,24 @@ public class ShopMapViewFragment extends Fragment {
         boolean camToUpdate = false;
         if (bounds == null) {
             bounds = new LatLngBounds.Builder();
-            bounds.include(new LatLng(lat, lng));
+            bounds.include(new LatLng(model.lat, model.lng));
             camToUpdate = true;
         }
         LatLngBounds previousBounds = bounds.build();
 
-        for (int i = 0; i < mCallback.getmShops().items.size(); i++) {
-            Shop shop = (Shop)mCallback.getmShops().items.get(i);
+        for (int i = 0; i < model.shopList.items.size(); i++) {
+            Shop shop = (Shop)model.shopList.items.get(i);
             LatLng pos = new LatLng(shop.getLat(), shop.getLng());
             MarkerOptions m = new MarkerOptions()
                     .position(pos)
                     .title(shop.getName());
             Marker marker;
-            if (i != mCallback.getmShops().selected) {
+            if (i != model.shopList.selected) {
                 //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
                 if (!boundsSet) {
                     camToUpdate = camToUpdate || !previousBounds.contains(pos);
                     bounds.include(pos);
-
                 }
             } else {
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
@@ -219,7 +217,7 @@ public class ShopMapViewFragment extends Fragment {
 
     private void updateButtons() {
 
-        int selected = mCallback.getmShops().selected;
+        int selected = model.shopList.selected;
 
         if (leftButton != null)
             if (selected != 0) {
@@ -230,11 +228,11 @@ public class ShopMapViewFragment extends Fragment {
                 leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
             }
 
-        if (selectedView != null && mCallback.getmShops().items != null && selected < mCallback.getmShops().items.size())
-            selectedView.setText(((Shop) mCallback.getmShops().items.get(selected)).getName());
+        if (selectedView != null && model.shopList.items != null && selected < model.shopList.items.size())
+            selectedView.setText(((Shop) model.shopList.items.get(selected)).getName());
 
         if (rightButton != null)
-            if (selected != mCallback.getmShops().size - 1) {
+            if (selected != model.shopList.size - 1) {
                 rightButton.setEnabled(true);
                 rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
             } else {
@@ -245,7 +243,7 @@ public class ShopMapViewFragment extends Fragment {
 
     public void onClick(Marker m) {
         Shop shop = shopsMarkerMap.get(m);
-        mCallback.onShopSelected(mCallback.getmShops().items.indexOf(shop));
+        mCallback.onShopSelected(model.shopList.items.indexOf(shop));
     }
 
     public void refresh() {
@@ -280,6 +278,5 @@ public class ShopMapViewFragment extends Fragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
-        public Results getmShops();
     }
 }

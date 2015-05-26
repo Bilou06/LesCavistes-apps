@@ -42,19 +42,14 @@ import java.util.Locale;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.core.Model;
+import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
 public class SearchActivity extends AppCompatActivity implements
         ConnectionCallbacks, OnConnectionFailedListener {
-
-    public final static String WHERE_MESSAGE = "fr.lescavistes.lescavistes.WHERE_MESSAGE";
-    public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
-    public final static String LAT_MESSAGE = "fr.lescavistes.lescavistes.LAT_MESSAGE";
-    public final static String LNG_MESSAGE = "fr.lescavistes.lescavistes.LNG_MESSAGE";
-    public final static String SHOPS_MESSAGE = "fr.lescavistes.lescavistes.SHOPS_MESSAGE";
-    public final static String NB_RESULTS = "fr.lescavistes.lescavistes.NB_RESULTS";
 
     protected static final String TAG = "search-activity";
 
@@ -64,9 +59,9 @@ public class SearchActivity extends AppCompatActivity implements
     protected GoogleApiClient mGoogleApiClient;
     protected boolean mGoogleApiConnected = false;
 
-    Geocoder mGeocoder = null;
+    private Geocoder mGeocoder = null;
 
-    private String mLat, mLng;
+    private Model model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +70,7 @@ public class SearchActivity extends AppCompatActivity implements
 
         buildGoogleApiClient();
 
+        //Transform address in latlng
         //Transform address in latlng
         if (MainApplication.isDebug()) {
             try {
@@ -85,6 +81,8 @@ public class SearchActivity extends AppCompatActivity implements
         } else {
             mGeocoder = new Geocoder(this, Locale.getDefault());
         }
+
+        model = MainApplication.getModel();
     }
 
     /**
@@ -167,18 +165,18 @@ public class SearchActivity extends AppCompatActivity implements
         final Intent intent = new Intent(this, DisplayShopListActivity.class);
 
         EditText editText = (EditText) findViewById(R.id.query_what);
-        final String what = editText.getText().toString();
+        model.what = editText.getText().toString();
 
         editText = (EditText) findViewById(R.id.query_where);
-        final String where = editText.getText().toString();
+        model.where = editText.getText().toString();
 
         // if empty, use current location
-        if (where.length() == 0) {
+        if (model.where.length() == 0) {
             if (mGoogleApiConnected) {
                 Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 if (mLastLocation != null) {
-                    mLat = String.valueOf(mLastLocation.getLatitude());
-                    mLng = String.valueOf(mLastLocation.getLongitude());
+                    model.lat = mLastLocation.getLatitude();
+                    model.lng = mLastLocation.getLongitude();
                 } else {
                     Toast.makeText(this, R.string.impossible_to_connect, Toast.LENGTH_LONG).show();
                     return;
@@ -192,8 +190,8 @@ public class SearchActivity extends AppCompatActivity implements
             List<Address> addresses;
             if (mGeocoder == null) {
                 if (MainApplication.isDebug()) {
-                    mLat = "44";
-                    mLng = "3";
+                    model.lat = 44.0;
+                    model.lng = 3.0;
                 } else {
                     Toast.makeText(this, R.string.no_connection_geocoder, Toast.LENGTH_LONG).show();
                     return;
@@ -201,20 +199,20 @@ public class SearchActivity extends AppCompatActivity implements
 
             } else {
                 try {
-                    addresses = mGeocoder.getFromLocationName(where, 1);
+                    addresses = mGeocoder.getFromLocationName(model.where, 1);
                 } catch (IOException e) {
                     Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
                     return;
                 }
 
                 if (addresses.size() > 0) {
-                    mLat = String.valueOf(addresses.get(0).getLatitude());
-                    mLng = String.valueOf(addresses.get(0).getLongitude());
+                    model.lat = addresses.get(0).getLatitude();
+                    model.lng = addresses.get(0).getLongitude();
 
                 } else {
                     if (MainApplication.isDebug()) {
-                        mLat = "44";
-                        mLng = "3";
+                        model.lat = 44.0;
+                        model.lng = 3.0;
                     } else {
                         Toast.makeText(this, R.string.ununderstable_address, Toast.LENGTH_LONG).show();
                         return;
@@ -224,7 +222,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + mLat + "&lng=" + mLng + "&q=" + what+"&c=0";
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.what +"&c=0";
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -233,26 +231,16 @@ public class SearchActivity extends AppCompatActivity implements
 
                         try {
                             // Parsing json array response
+                            model.shopList = new Results<Shop>();
+                            model.shopList.size = Integer.parseInt(response.get(0).toString());
 
-                            String size = response.get(0).toString();
-
-                            ArrayList shopList = new ArrayList();
                             for (int i = 1; i < response.length(); i++) {
 
                                 JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
                                 Shop shop = new Shop(jsonShop);
-
-                                shopList.add(shop);
+                                model.shopList.items.add(shop);
 
                             }
-                            intent.putExtra(NB_RESULTS, size);
-                            intent.putExtra(SHOPS_MESSAGE, shopList);
-
-                            intent.putExtra(LAT_MESSAGE, mLat);
-                            intent.putExtra(LNG_MESSAGE, mLng);
-
-                            intent.putExtra(WHERE_MESSAGE, where);
-                            intent.putExtra(WHAT_MESSAGE, what);
 
                             startActivity(intent);
                         } catch (JSONException e) {

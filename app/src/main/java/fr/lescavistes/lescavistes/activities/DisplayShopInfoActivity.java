@@ -32,6 +32,7 @@ import java.util.ArrayList;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.core.Wine;
@@ -45,11 +46,6 @@ import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
  */
 public class DisplayShopInfoActivity extends AppCompatActivity {
 
-    public static final String LAT_KEY = "LAT_KEY";
-    public static final String LNG_KEY = "LNG_KEY";
-    public static final String WHAT_KEY = "WHAT_KEY";
-    public static final String SHOP_KEY = "SHOP_KEY";
-
     ShopFragmentPagerAdapter mShopFragmentPagerAdapter;
     ViewPager mViewPager;
 
@@ -58,9 +54,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
     private Boolean mSwipeLayout;
 
-    private String mWhere, mWhat;
-    private Shop mShop;
-    private float mLat, mLng;
+    Model model;
 
     private Results mWines;
 
@@ -69,13 +63,10 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         setContentView(R.layout.activity_display_shop_info);
 
-        Intent intent = getIntent();
-        mWhat = intent.getStringExtra(DisplayShopListActivity.WHAT_MESSAGE);
-        mLng = intent.getFloatExtra(DisplayShopListActivity.LNG_MESSAGE, 0);
-        mLat = intent.getFloatExtra(DisplayShopListActivity.LAT_MESSAGE, 0);
-        mShop = (Shop) intent.getSerializableExtra(DisplayShopListActivity.SHOP_MESSAGE);
+        model = MainApplication.getModel();
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
@@ -130,29 +121,21 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
 
         // Create the content fragments : map and list
-        Bundle args = new Bundle();
-        args.putFloat(LAT_KEY, mLat);
-        args.putFloat(LNG_KEY, mLng);
-        args.putString(WHAT_KEY, mWhat);
-        args.putSerializable(SHOP_KEY, mShop);
 
         if (mSwipeLayout) {
             mShopFragmentPagerAdapter =
                     new ShopFragmentPagerAdapter(getSupportFragmentManager());
-            mShopFragmentPagerAdapter.setContent(args);
             mViewPager.setAdapter(mShopFragmentPagerAdapter);
 
         } else if (savedInstanceState == null) {
             android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             mInfoViewFragment = new ShopInfoViewFragment();
-            mInfoViewFragment.setArguments(args);
             transaction.add(R.id.list_shops, mInfoViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
 
             transaction = getSupportFragmentManager().beginTransaction();
             mGotoViewFragment = new ShopGotoViewFragment();
-            mGotoViewFragment.setArguments(args);
             transaction.add(R.id.map_shops, mGotoViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
@@ -196,7 +179,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         // Request the wine list from the url.
-        String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(mShop.getId()) + "&q=" + mWhat + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(model.shopList.getSelected().getId()) + "&q=" + model.what + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 

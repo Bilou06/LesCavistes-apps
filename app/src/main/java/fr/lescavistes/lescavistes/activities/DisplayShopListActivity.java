@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import de.greenrobot.event.EventBus;
+import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
@@ -47,17 +48,6 @@ public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener,
                     ShopMapViewFragment.OnShopSelectedListener{
 
-    public final static String SHOP_MESSAGE = "fr.lescavistes.lescavistes.SHOP_MESSAGE";
-    public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
-    public final static String LAT_MESSAGE = "fr.lescavistes.lescavistes.LAT_MESSAGE";
-    public final static String LNG_MESSAGE = "fr.lescavistes.lescavistes.LNG_MESSAGE";
-
-    public static final String LAT_KEY = "LAT_KEY";
-    public static final String LNG_KEY = "LNG_KEY";
-    public static final String WHAT_KEY = "WHAT_KEY";
-    public static final String SHOPS_KEY = "SHOPS_KEY";
-
-
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
     ViewPager mViewPager;
@@ -65,9 +55,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     private ShopListViewFragment mListViewFragment;
     private ShopMapViewFragment mMapsViewFragment;
 
-    private String mLat, mLng, mWhere, mWhat;
-
-    private Results mShops;
+    private Model model;
 
     private Boolean mSwipeLayout;
 
@@ -75,16 +63,9 @@ public class DisplayShopListActivity extends AppCompatActivity
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_display_shop_list);
+        model = MainApplication.getModel();
 
-        Intent intent = getIntent();
-        mWhere = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
-        mWhat = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
-        mLng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
-        mLat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
-        mShops = new Results((ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE),
-                Integer.parseInt(intent.getStringExtra(SearchActivity.NB_RESULTS)),
-                0);
+        setContentView(R.layout.activity_display_shop_list);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
@@ -138,29 +119,21 @@ public class DisplayShopListActivity extends AppCompatActivity
 
 
         // Create the content fragments : map and list
-        Bundle args = new Bundle();
-        args.putFloat(LAT_KEY, Float.parseFloat(mLat));
-        args.putFloat(LNG_KEY, Float.parseFloat(mLng));
-        args.putString(WHAT_KEY, mWhat);
-        args.putSerializable(SHOPS_KEY, mShops.items);
 
         if (mSwipeLayout) {
             mShopsFragmentPagerAdapter =
                     new ShopsFragmentPagerAdapter(getSupportFragmentManager());
-            mShopsFragmentPagerAdapter.setContent(args);
             mViewPager.setAdapter(mShopsFragmentPagerAdapter);
 
         } else if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             mListViewFragment = new ShopListViewFragment();
-            mListViewFragment.setArguments(args);
             transaction.add(R.id.list_shops, mListViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
 
             transaction = getSupportFragmentManager().beginTransaction();
             mMapsViewFragment = new ShopMapViewFragment();
-            mMapsViewFragment.setArguments(args);
             transaction.add(R.id.map_shops, mMapsViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
@@ -200,21 +173,17 @@ public class DisplayShopListActivity extends AppCompatActivity
     }
 
     public void onShopSelected(int id) {
-        mShops.selected = id;
+        model.shopList.selected = id;
 
         EventBus bus = EventBus.getDefault();
         bus.post(new SelectionChangedEvent(id));
-    }
-
-    public Results getmShops() {
-        return mShops;
     }
 
 
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + mLat + "&lng=" + mLng + "&q=" + mWhat + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.lng + "&q=" + model.getLng() + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -224,7 +193,7 @@ public class DisplayShopListActivity extends AppCompatActivity
                         try {
                             // Parsing json array response
 
-                            mShops.size = Integer.parseInt(response.get(0).toString());
+                            model.shopList.size = Integer.parseInt(response.get(0).toString());
 
                             ArrayList<Shop> newShops = new ArrayList<Shop>();
                             for (int i = 1; i < response.length(); i++) {
@@ -232,12 +201,12 @@ public class DisplayShopListActivity extends AppCompatActivity
                                 JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
                                 Shop shop = new Shop(jsonShop);
 
-                                mShops.items.add(shop);
+                                model.shopList.items.add(shop);
                                 newShops.add(shop);
 
                             }
 
-                            getListFragment().addContent(mShops.size, newShops);
+                            getListFragment().addContent(model.shopList.size, newShops);
                             getMapFragment().refresh();
 
 
