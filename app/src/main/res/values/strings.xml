@@ -24,4 +24,5 @@
     <string name="itinerary">Itinéraire</string>
     <string name="shop_info">Information du magasin</string>
     <string name="title_activity_display_shop_info">Magasin</string>
+    <string name="impossible_to_draw_path">Impossible d\'afficher le chemin, merci de réessayer plus tard</string>
 </resources>
