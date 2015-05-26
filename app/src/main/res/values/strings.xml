@@ -19,4 +19,9 @@
     <string name="icon_content_description">icon content description</string>
     <string name="no_connection_geocoder">Impossible de se connecter aux services degéolocalisation. Merci de réessayer plus tard.</string>
     <string name="End">Fin</string>
+    <string name="maintenance_error">Le site est en maintenance. Merci de réessayer dans quelques minutes</string>
+    <string name="connection_error">Impossible de se connecter à internet. Merci de vérifier votre connexion.</string>
+    <string name="itinerary">Itinéraire</string>
+    <string name="shop_info">Information du magasin</string>
+    <string name="title_activity_display_shop_info">Magasin</string>
 </resources>

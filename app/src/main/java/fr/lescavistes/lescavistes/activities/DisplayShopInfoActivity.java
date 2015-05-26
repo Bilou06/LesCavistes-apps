@@ -1,12 +1,11 @@
 package fr.lescavistes.lescavistes.activities;
 
-
+import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
-
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkError;
@@ -32,59 +30,52 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import de.greenrobot.event.EventBus;
-import fr.lescavistes.lescavistes.core.Results;
-import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
-import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
-import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
-import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
+import fr.lescavistes.lescavistes.core.Wine;
+import fr.lescavistes.lescavistes.fragments.ShopGotoViewFragment;
+import fr.lescavistes.lescavistes.fragments.ShopInfoViewFragment;
+import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
-public class DisplayShopListActivity extends AppCompatActivity
-        implements ShopListViewFragment.OnShopSelectedListener,
-                    ShopMapViewFragment.OnShopSelectedListener{
-
-    public final static String SHOP_MESSAGE = "fr.lescavistes.lescavistes.SHOP_MESSAGE";
-    public final static String WHAT_MESSAGE = "fr.lescavistes.lescavistes.WHAT_MESSAGE";
-    public final static String LAT_MESSAGE = "fr.lescavistes.lescavistes.LAT_MESSAGE";
-    public final static String LNG_MESSAGE = "fr.lescavistes.lescavistes.LNG_MESSAGE";
+/**
+ * Created by Sylvain on 26/05/2015.
+ */
+public class DisplayShopInfoActivity extends AppCompatActivity {
 
     public static final String LAT_KEY = "LAT_KEY";
     public static final String LNG_KEY = "LNG_KEY";
     public static final String WHAT_KEY = "WHAT_KEY";
-    public static final String SHOPS_KEY = "SHOPS_KEY";
+    public static final String SHOP_KEY = "SHOP_KEY";
 
-
-    private static final String TAG = "Display Shop List";
-    ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
+    ShopFragmentPagerAdapter mShopFragmentPagerAdapter;
     ViewPager mViewPager;
 
-    private ShopListViewFragment mListViewFragment;
-    private ShopMapViewFragment mMapsViewFragment;
-
-    private String mLat, mLng, mWhere, mWhat;
-
-    private Results mShops;
+    private ShopInfoViewFragment mInfoViewFragment;
+    private ShopGotoViewFragment mGotoViewFragment;
 
     private Boolean mSwipeLayout;
+
+    private String mWhere, mWhat;
+    private Shop mShop;
+    private float mLat, mLng;
+
+    private Results mWines;
+
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_display_shop_list);
+        setContentView(R.layout.activity_display_shop_info);
 
         Intent intent = getIntent();
-        mWhere = intent.getStringExtra(SearchActivity.WHERE_MESSAGE);
-        mWhat = intent.getStringExtra(SearchActivity.WHAT_MESSAGE);
-        mLng = intent.getStringExtra(SearchActivity.LNG_MESSAGE);
-        mLat = intent.getStringExtra(SearchActivity.LAT_MESSAGE);
-        mShops = new Results((ArrayList) intent.getSerializableExtra(SearchActivity.SHOPS_MESSAGE),
-                Integer.parseInt(intent.getStringExtra(SearchActivity.NB_RESULTS)),
-                0);
+        mWhat = intent.getStringExtra(DisplayShopListActivity.WHAT_MESSAGE);
+        mLng = intent.getFloatExtra(DisplayShopListActivity.LNG_MESSAGE, 0);
+        mLat = intent.getFloatExtra(DisplayShopListActivity.LAT_MESSAGE, 0);
+        mShop = (Shop) intent.getSerializableExtra(DisplayShopListActivity.SHOP_MESSAGE);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mSwipeLayout = (mViewPager != null);
@@ -97,17 +88,17 @@ public class DisplayShopListActivity extends AppCompatActivity
 
             // Create a tab listener that is called when the user changes tabs.
             ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-                public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
                     // When the tab is selected, switch to the
                     // corresponding page in the ViewPager.
                     mViewPager.setCurrentItem(tab.getPosition());
                 }
 
-                public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
                     // hide the given tab
                 }
 
-                public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
                     // probably ignore this event
                 }
             };
@@ -122,6 +113,7 @@ public class DisplayShopListActivity extends AppCompatActivity
                     .setIcon(R.drawable.ic_tab_location)
                     .setTabListener(tabListener);
             actionBar.addTab(tab);
+
 
             mViewPager.setOnPageChangeListener(
                     new ViewPager.SimpleOnPageChangeListener() {
@@ -139,34 +131,35 @@ public class DisplayShopListActivity extends AppCompatActivity
 
         // Create the content fragments : map and list
         Bundle args = new Bundle();
-        args.putFloat(LAT_KEY, Float.parseFloat(mLat));
-        args.putFloat(LNG_KEY, Float.parseFloat(mLng));
+        args.putFloat(LAT_KEY, mLat);
+        args.putFloat(LNG_KEY, mLng);
         args.putString(WHAT_KEY, mWhat);
-        args.putSerializable(SHOPS_KEY, mShops.items);
+        args.putSerializable(SHOP_KEY, mShop);
 
         if (mSwipeLayout) {
-            mShopsFragmentPagerAdapter =
-                    new ShopsFragmentPagerAdapter(getSupportFragmentManager());
-            mShopsFragmentPagerAdapter.setContent(args);
-            mViewPager.setAdapter(mShopsFragmentPagerAdapter);
+            mShopFragmentPagerAdapter =
+                    new ShopFragmentPagerAdapter(getSupportFragmentManager());
+            mShopFragmentPagerAdapter.setContent(args);
+            mViewPager.setAdapter(mShopFragmentPagerAdapter);
 
         } else if (savedInstanceState == null) {
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            mListViewFragment = new ShopListViewFragment();
-            mListViewFragment.setArguments(args);
-            transaction.add(R.id.list_shops, mListViewFragment);
+            android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            mInfoViewFragment = new ShopInfoViewFragment();
+            mInfoViewFragment.setArguments(args);
+            transaction.add(R.id.list_shops, mInfoViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
 
             transaction = getSupportFragmentManager().beginTransaction();
-            mMapsViewFragment = new ShopMapViewFragment();
-            mMapsViewFragment.setArguments(args);
-            transaction.add(R.id.map_shops, mMapsViewFragment);
+            mGotoViewFragment = new ShopGotoViewFragment();
+            mGotoViewFragment.setArguments(args);
+            transaction.add(R.id.map_shops, mGotoViewFragment);
             transaction.addToBackStack(null);
             transaction.commit();
         }
 
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -199,22 +192,11 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-    public void onShopSelected(int id) {
-        mShops.selected = id;
-
-        EventBus bus = EventBus.getDefault();
-        bus.post(new SelectionChangedEvent(id));
-    }
-
-    public Results getmShops() {
-        return mShops;
-    }
-
 
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
-        // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + mLat + "&lng=" + mLng + "&q=" + mWhat + "&c=" + String.valueOf(offset);
+        // Request the wine list from the url.
+        String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(mShop.getId()) + "&q=" + mWhat + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
@@ -224,21 +206,20 @@ public class DisplayShopListActivity extends AppCompatActivity
                         try {
                             // Parsing json array response
 
-                            mShops.size = Integer.parseInt(response.get(0).toString());
+                            mWines.size = Integer.parseInt(response.get(0).toString());
 
-                            ArrayList<Shop> newShops = new ArrayList<Shop>();
+                            ArrayList<Wine> newWines = new ArrayList<Wine>();
                             for (int i = 1; i < response.length(); i++) {
 
-                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
-                                Shop shop = new Shop(jsonShop);
+                                JSONObjectUtf8 jsonWine = new JSONObjectUtf8((JSONObject) response.get(i));
+                                Wine wine = new Wine(jsonWine);
 
-                                mShops.items.add(shop);
-                                newShops.add(shop);
+                                mWines.items.add(wine);
+                                newWines.add(wine);
 
                             }
 
-                            getListFragment().addContent(mShops.size, newShops);
-                            getMapFragment().refresh();
+                            //getWineListFragment().addContent(mWines.size, newWines);
 
 
                         } catch (JSONException e) {
@@ -253,11 +234,11 @@ public class DisplayShopListActivity extends AppCompatActivity
             public void onErrorResponse(VolleyError error) {
                 if (error instanceof TimeoutError || error instanceof AuthFailureError || error instanceof ServerError || error instanceof ParseError) {
                     Toast.makeText(getApplicationContext(),
-                            "Le site est en maintenance. Merci de réessayer dans quelques minutes",
+                            getString(R.string.maintenance_error),
                             Toast.LENGTH_LONG).show();
                 } else if (error instanceof NoConnectionError || error instanceof NetworkError) {
                     Toast.makeText(getApplicationContext(),
-                            "Impossible de se connecter à internet. Merci de vérifier votre connexion.",
+                            getString(R.string.connection_error),
                             Toast.LENGTH_LONG).show();
                 }
             }
@@ -267,37 +248,17 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
-    //helpers
-    private ShopListViewFragment getListFragment() {
-        if (mSwipeLayout) {
-            return mShopsFragmentPagerAdapter.getListFragment();
-        } else {
-            return mListViewFragment;
-        }
-    }
 
-    private ShopMapViewFragment getMapFragment() {
-        if (mSwipeLayout) {
-            return mShopsFragmentPagerAdapter.getMapFragment();
-        } else {
-            return mMapsViewFragment;
-        }
-    }
-
-
-    /**
-     * Created by Sylvain on 06/05/2015.
-     */
-    public static class ShopsFragmentPagerAdapter extends FragmentPagerAdapter {
+    public class ShopFragmentPagerAdapter extends FragmentPagerAdapter {
 
         static final int NUM_ITEMS = 2;
 
         private Bundle args;
 
-        private ShopListViewFragment mListFragment;
-        private ShopMapViewFragment mMapFragment;
+        private ShopInfoViewFragment mInfoFragment;
+        private ShopGotoViewFragment mGotoFragment;
 
-        public ShopsFragmentPagerAdapter(FragmentManager fm) {
+        public ShopFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
             args = new Bundle();
         }
@@ -309,13 +270,13 @@ public class DisplayShopListActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int i) {
             if (i == 0) {
-                mListFragment = new ShopListViewFragment();
-                mListFragment.setArguments(args);
-                return mListFragment;
+                mInfoFragment = new ShopInfoViewFragment();
+                mInfoFragment.setArguments(args);
+                return mInfoFragment;
             } else {
-                mMapFragment = new ShopMapViewFragment();
-                mMapFragment.setArguments(args);
-                return mMapFragment;
+                mGotoFragment = new ShopGotoViewFragment();
+                mGotoFragment.setArguments(args);
+                return mGotoFragment;
             }
         }
 
@@ -327,23 +288,12 @@ public class DisplayShopListActivity extends AppCompatActivity
         @Override
         public CharSequence getPageTitle(int position) {
             if (position == 0)
-                return "Liste des magasins";
+                return getString(R.string.shop_info);
             else
-                return "Carte des magasins";
+                return getString(R.string.itinerary);
         }
 
-        public ShopListViewFragment getListFragment() {
-            if (mListFragment!= null) return mListFragment;
-            else return (ShopListViewFragment) getItem(0);
-        }
-
-        public ShopMapViewFragment getMapFragment() {
-            if (mMapFragment!= null) return mMapFragment;
-            else return (ShopMapViewFragment) getItem(1);
-        }
 
     }
+
 }
-
-
-

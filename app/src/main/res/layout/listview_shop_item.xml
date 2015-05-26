@@ -28,9 +28,9 @@
             android:textAppearance="@android:style/TextAppearance.Medium"
             />
 
-        <!-- the description view -->
+        <!-- the distance view -->
         <TextView
-            android:id="@+id/tvDescription"
+            android:id="@+id/tvDistance"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:textAppearance="@android:style/TextAppearance.Small"
@@ -39,7 +39,7 @@
             />
         </LinearLayout>
 
-        <!-- the description view -->
+        <!-- the distance view -->
         <TextView
             android:id="@+id/tvAddress"
             android:layout_width="match_parent"

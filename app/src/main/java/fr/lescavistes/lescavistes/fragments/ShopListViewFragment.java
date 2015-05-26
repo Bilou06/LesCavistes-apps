@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.activities.DisplayShopInfoActivity;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
@@ -41,7 +43,10 @@ public class ShopListViewFragment extends ListFragment {
 
     OnShopSelectedListener mCallback;
 
-    private List<ShopListItem> mItems;        // ListView items list
+    private List<Shop> mItems;        // ListView items list
+    private float lat, lng;
+    private String what;
+
     private ShopListAdapter mAdapter;
 
     EventBus bus = EventBus.getDefault();
@@ -76,10 +81,22 @@ public class ShopListViewFragment extends ListFragment {
             ArrayList<Shop> shopList = (ArrayList<Shop>) getArguments().getSerializable(DisplayShopListActivity.SHOPS_KEY);
             if (shopList != null)
                 for (Shop shop : shopList) {
-                    mItems.add(new ShopListItem(shop));
+                    mItems.add(shop);
                 }
         }
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        //read data
+        if (getArguments() != null) {
+            lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
+            lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
+            what = getArguments().getString(DisplayShopListActivity.WHAT_KEY);
+        }
+
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
@@ -96,7 +113,7 @@ public class ShopListViewFragment extends ListFragment {
             public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
 
-                if (totalItemsCount - 1 >  mCallback.getResults().size)
+                if (totalItemsCount - 1 >  mCallback.getmShops().size)
                     return;
 
                 ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount-2);
@@ -110,14 +127,13 @@ public class ShopListViewFragment extends ListFragment {
 
             position = position - 1;//due to header
 
-            if ( mCallback.getResults().selected != position) {
+            if ( mCallback.getmShops().selected != position) {
                 //tell the activity
 
                 mCallback.onShopSelected(position);
 
                 // retrieve theListView item
-                ShopListItem item = mItems.get(position);
-
+                Shop item = mItems.get(position);
 
                 // change the layout
                 v.setSelected(true);
@@ -133,19 +149,19 @@ public class ShopListViewFragment extends ListFragment {
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null) {
-            mItems = (List<ShopListItem>) savedInstanceState.getSerializable(ITEMS);
+            mItems = (List<Shop>) savedInstanceState.getSerializable(ITEMS);
         }
 
         //add header
         View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
         TextView tv = (TextView) v.findViewById(R.id.nbResults);
         ;
-        if ( mCallback.getResults().size == 0) {
+        if ( mCallback.getmShops().size == 0) {
             tv.setText("Aucun résultat");
-        } else if (mCallback.getResults().size == 1) {
+        } else if (mCallback.getmShops().size == 1) {
             tv.setText("1 résultat");
         } else {
-            tv.setText(String.valueOf(mCallback.getResults().size) + " résultats");
+            tv.setText(String.valueOf(mCallback.getmShops().size) + " résultats");
         }
 
         this.getListView().addHeaderView(v);
@@ -153,14 +169,14 @@ public class ShopListViewFragment extends ListFragment {
         // initialize and set the list adapter
 
         mAdapter = new ShopListAdapter(getActivity(), mItems);
-        mAdapter.setServerListSize(mCallback.getResults().size);
-        mAdapter.selectedItem(mCallback.getResults().selected);
+        mAdapter.setServerListSize(mCallback.getmShops().size);
+        mAdapter.selectedItem(mCallback.getmShops().selected);
         setListAdapter(mAdapter);
 
         // select the element
-        int selected = mCallback.getResults().selected;
+        int selected = mCallback.getmShops().selected;
         if (selected > -1 && selected < mItems.size()) {
-            ShopListItem selectedItem = mItems.get(selected);
+            Shop selectedItem = mItems.get(selected);
             if (selectedItem != null) {
                 getListView().setSelection(selected);
                 getListView().setItemChecked(selected, true);
@@ -180,18 +196,18 @@ public class ShopListViewFragment extends ListFragment {
     public void onResume(){
         super.onResume();
         if(mCallback!=null) {
-            mAdapter.selectedItem(mCallback.getResults().selected);
+            mAdapter.selectedItem(mCallback.getmShops().selected);
             mAdapter.notifyDataSetChanged();
         }
     }
 
     public void addContent(int size, ArrayList<Shop> shopList) {
         if (mItems == null)
-            mItems = new ArrayList<ShopListItem>();
+            mItems = new ArrayList<Shop>();
         // initialize the items list
         if (shopList != null)
             for (Shop shop : shopList) {
-                mItems.add(new ShopListItem(shop));
+                mItems.add(shop);
             }
 
         int index = 0;
@@ -211,7 +227,7 @@ public class ShopListViewFragment extends ListFragment {
     }
 
     public void onEvent(SelectionChangedEvent event) {
-        mAdapter.selectedItem(mCallback.getResults().selected);
+        mAdapter.selectedItem(mCallback.getmShops().selected);
         mAdapter.notifyDataSetChanged();
     }
 
@@ -230,36 +246,15 @@ public class ShopListViewFragment extends ListFragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
-        public Results getResults();
+        public Results getmShops();
     }
 
-    /**
-     * Created by Sylvain on 05/05/2015.
-     */
-    public static class ShopListItem implements Serializable {
 
-        public final String title;        // the text for the ListView item title
-        public final String description;  // the text for the ListView item description
-        public final String address;  // the text for the ListView item description
-        public final int id;
-        public final String email;
-        public final String phone;
-
-        public ShopListItem(Shop shop) {
-            this.title = shop.getName();
-            this.description = String.valueOf(shop.getDist()) + " km";
-            this.id = shop.getId();
-            this.address = shop.getAddress();
-            this.email = shop.getEmail();
-            this.phone = shop.getPhone();
-        }
-    }
-
-    public class ShopListAdapter extends GenericAdapter<ShopListItem> {
+    public class ShopListAdapter extends GenericAdapter<Shop> {
 
         private int mSelected;
 
-        public ShopListAdapter(Activity activity, List<ShopListItem> items) {
+        public ShopListAdapter(Activity activity, List<Shop> items) {
             super(activity, R.layout.listview_shop_item, items);
             mSelected = -1;
         }
@@ -281,7 +276,7 @@ public class ShopListViewFragment extends ListFragment {
                     // initialize the view holder
                     viewHolder = new ViewHolder();
                     viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-                    viewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+                    viewHolder.tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
                     viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
                     convertView.setTag(viewHolder);
                 } else {
@@ -290,10 +285,10 @@ public class ShopListViewFragment extends ListFragment {
                 }
 
                 // update the item view
-                ShopListItem item = getItem(position);
-                viewHolder.tvTitle.setText(item.title);
-                viewHolder.tvDescription.setText(item.description);
-                viewHolder.tvAddress.setText(item.address);
+                Shop item = getItem(position);
+                viewHolder.tvTitle.setText(item.getName());
+                viewHolder.tvDistance.setText(item.getDistance());
+                viewHolder.tvAddress.setText(item.getAddress());
 
                 return convertView;
             } else {
@@ -305,20 +300,20 @@ public class ShopListViewFragment extends ListFragment {
                 // initialize the view holder
                 selectedViewHolder = new SelectedViewHolder();
                 selectedViewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-                selectedViewHolder.tvDescription = (TextView) convertView.findViewById(R.id.tvDescription);
+                selectedViewHolder.tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
                 selectedViewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
                 selectedViewHolder.bMail = (Button) convertView.findViewById(R.id.bMail);
                 selectedViewHolder.bPhone = (Button) convertView.findViewById(R.id.bTel);
                 convertView.setTag(selectedViewHolder);
 
                 // update the item view
-                ShopListItem item = getItem(position);
-                selectedViewHolder.tvTitle.setText(item.title);
-                selectedViewHolder.tvDescription.setText(item.description);
-                selectedViewHolder.tvAddress.setText(item.address);
+                final Shop item = getItem(position);
+                selectedViewHolder.tvTitle.setText(item.getName());
+                selectedViewHolder.tvDistance.setText(item.getDistance());
+                selectedViewHolder.tvAddress.setText(item.getAddress());
 
-                if (item.email.length() != 0) {
-                    selectedViewHolder.bMail.setText(item.email);
+                if (item.getEmail().length() != 0) {
+                    selectedViewHolder.bMail.setText(item.getEmail());
                     selectedViewHolder.bMail.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -334,8 +329,8 @@ public class ShopListViewFragment extends ListFragment {
                     selectedViewHolder.bMail.setVisibility(View.GONE);
                 }
 
-                if (item.phone.length() != 0) {
-                    selectedViewHolder.bPhone.setText(item.phone);
+                if (item.getPhone().length() != 0) {
+                    selectedViewHolder.bPhone.setText(item.getPhone());
                     selectedViewHolder.bPhone.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -350,6 +345,24 @@ public class ShopListViewFragment extends ListFragment {
                     selectedViewHolder.bPhone.setVisibility(View.GONE);
                 }
 
+                Button open = (Button) convertView.findViewById(R.id.bOpen);
+                open.setEnabled(true);
+                open.setClickable(true);
+                open.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getContext(), DisplayShopInfoActivity.class);
+
+                        intent.putExtra(DisplayShopListActivity.LAT_MESSAGE, lat);
+                        intent.putExtra(DisplayShopListActivity.LNG_MESSAGE, lng);
+
+                        intent.putExtra(DisplayShopListActivity.WHAT_MESSAGE, what);
+                        intent.putExtra(DisplayShopListActivity.SHOP_MESSAGE, item);
+
+                        startActivity(intent);
+                    }
+                });
+
                 return convertView;
 
             }
@@ -363,7 +376,7 @@ public class ShopListViewFragment extends ListFragment {
         private class ViewHolder {
             ImageView ivIcon;
             TextView tvTitle;
-            TextView tvDescription;
+            TextView tvDistance;
             TextView tvAddress;
         }
 

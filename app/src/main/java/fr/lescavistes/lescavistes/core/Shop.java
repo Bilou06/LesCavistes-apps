@@ -87,5 +87,17 @@ public class Shop implements Serializable {
     public String getEmail() {
         return email;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getDistance(){
+        return String.valueOf(getDist()) + " km";
+    }
+
+    public String getWeb(){
+        return web;
+    }
 }
 

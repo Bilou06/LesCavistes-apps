@@ -84,7 +84,6 @@ public class ShopMapViewFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_map_shops, container, false);
 
         //read data
-
         if (getArguments() != null) {
             lat = getArguments().getFloat(DisplayShopListActivity.LAT_KEY);
             lng = getArguments().getFloat(DisplayShopListActivity.LNG_KEY);
@@ -110,7 +109,7 @@ public class ShopMapViewFragment extends Fragment {
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getResults().selected;
+                    int selected = mCallback.getmShops().selected;
                     if (selected == 0)
                         return;
                     selected--;
@@ -122,19 +121,20 @@ public class ShopMapViewFragment extends Fragment {
         if (rightButton != null)
             rightButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = mCallback.getResults().selected;
-                    if (selected >= mCallback.getResults().size)
+                    int selected = mCallback.getmShops().selected;
+                    if (selected >= mCallback.getmShops().size)
                         return;
                     selected++;
 
-                    if (selected >= mCallback.getResults().shops.size()) {
-                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mCallback.getResults().shops.size());
+                    if (selected >= mCallback.getmShops().items.size()) {
+                        ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(mCallback.getmShops().items.size());
                         return;
                     }
 
                     mCallback.onShopSelected(selected);
                 }
             });
+
 
         updateButtons();
     }
@@ -175,14 +175,14 @@ public class ShopMapViewFragment extends Fragment {
         }
         LatLngBounds previousBounds = bounds.build();
 
-        for (int i = 0; i < mCallback.getResults().shops.size(); i++) {
-            Shop shop = mCallback.getResults().shops.get(i);
+        for (int i = 0; i < mCallback.getmShops().items.size(); i++) {
+            Shop shop = (Shop)mCallback.getmShops().items.get(i);
             LatLng pos = new LatLng(shop.getLat(), shop.getLng());
             MarkerOptions m = new MarkerOptions()
                     .position(pos)
                     .title(shop.getName());
             Marker marker;
-            if (i != mCallback.getResults().selected) {
+            if (i != mCallback.getmShops().selected) {
                 //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
                 if (!boundsSet) {
@@ -219,7 +219,7 @@ public class ShopMapViewFragment extends Fragment {
 
     private void updateButtons() {
 
-        int selected = mCallback.getResults().selected;
+        int selected = mCallback.getmShops().selected;
 
         if (leftButton != null)
             if (selected != 0) {
@@ -230,11 +230,11 @@ public class ShopMapViewFragment extends Fragment {
                 leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
             }
 
-        if (selectedView != null && mCallback.getResults().shops != null && selected < mCallback.getResults().shops.size())
-            selectedView.setText(mCallback.getResults().shops.get(selected).getName());
+        if (selectedView != null && mCallback.getmShops().items != null && selected < mCallback.getmShops().items.size())
+            selectedView.setText(((Shop) mCallback.getmShops().items.get(selected)).getName());
 
         if (rightButton != null)
-            if (selected != mCallback.getResults().size - 1) {
+            if (selected != mCallback.getmShops().size - 1) {
                 rightButton.setEnabled(true);
                 rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
             } else {
@@ -245,7 +245,7 @@ public class ShopMapViewFragment extends Fragment {
 
     public void onClick(Marker m) {
         Shop shop = shopsMarkerMap.get(m);
-        mCallback.onShopSelected(mCallback.getResults().shops.indexOf(shop));
+        mCallback.onShopSelected(mCallback.getmShops().items.indexOf(shop));
     }
 
     public void refresh() {
@@ -280,6 +280,6 @@ public class ShopMapViewFragment extends Fragment {
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
-        public Results getResults();
+        public Results getmShops();
     }
 }

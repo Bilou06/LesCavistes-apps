@@ -39,20 +39,21 @@
                 android:textAppearance="@android:style/TextAppearance.Small" />
         </LinearLayout>
 
-        <!-- the distance view -->
+        <!-- the address view -->
         <TextView
             android:id="@+id/tvAddress"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="@android:style/TextAppearance.Small" />
 
-        <RelativeLayout
+
+        <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <LinearLayout
-                android:layout_width="fill_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
@@ -73,22 +74,42 @@
                     android:clickable="true"
                     android:textAllCaps="false"
                     android:textSize="@dimen/abc_text_size_small_material" />
+
+                <Button
+                    android:id="@+id/bWeb"
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:textAllCaps="false"
+                    android:textSize="@dimen/abc_text_size_small_material" />
             </LinearLayout>
 
-            <Button
-                android:id="@+id/bOpen"
-                style="?android:attr/buttonStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="end"
-                android:layout_marginRight="10dp"
-                android:background="@drawable/ic_action_open"
-                android:clickable="true"
-                android:enabled="false" />
+                android:gravity="end">
 
+                <ImageView
+                    android:id="@+id/ivImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
-        </RelativeLayout>
+                <ProgressBar
+                    android:id="@+id/ivImageProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true" />
+            </RelativeLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Small" />
+
 
     </LinearLayout>
 

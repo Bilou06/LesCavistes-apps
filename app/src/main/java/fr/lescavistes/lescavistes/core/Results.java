@@ -6,14 +6,14 @@ import java.util.ArrayList;
 /**
  * Created by Sylvain on 20/05/2015.
  */
-public class Results implements Serializable{
+public class Results<T> implements Serializable{
 
     public int selected;
     public int size;
-    public ArrayList<Shop> shops;
+    public ArrayList<T> items;
 
-    public Results(ArrayList shops, int size, int selected){
-        this.shops=shops;
+    public Results(ArrayList items, int size, int selected){
+        this.items=items;
         this.size=size;
         this.selected=selected;
     }

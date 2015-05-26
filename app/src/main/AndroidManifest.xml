@@ -54,7 +54,19 @@
                 android:value=".activities.DisplayShopListActivity" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
+        <activity
+            android:name=".activities.DisplayShopInfoActivity"
+            android:label="@string/title_activity_display_shop_info"
+            android:parentActivityName=".activities.DisplayShopListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.DisplayShopInfoActivity" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
