@@ -105,12 +105,12 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
             // Add 2 tabs
             ActionBar.Tab tab = actionBar.newTab()
-                    .setIcon(R.drawable.ic_action_list)
+                    .setIcon(R.drawable.ic_action_info)
                     .setTabListener(tabListener);
             actionBar.addTab(tab);
 
             tab = actionBar.newTab()
-                    .setIcon(R.drawable.ic_tab_location)
+                    .setIcon(R.drawable.ic_tab_goto)
                     .setTabListener(tabListener);
             actionBar.addTab(tab);
 
