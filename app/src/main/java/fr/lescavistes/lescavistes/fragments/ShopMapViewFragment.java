@@ -5,6 +5,7 @@
 package fr.lescavistes.lescavistes.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
+import fr.lescavistes.lescavistes.activities.DisplayShopInfoActivity;
 import fr.lescavistes.lescavistes.activities.DisplayShopListActivity;
 import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
@@ -46,8 +48,7 @@ public class ShopMapViewFragment extends Fragment {
     private boolean boundsSet;
     private HashMap<Marker, Shop> shopsMarkerMap;
 
-    private Button leftButton, rightButton;
-    private TextView selectedView;
+    private Button leftButton, rightButton, selectedView;
 
     private Model model;
 
@@ -103,7 +104,7 @@ public class ShopMapViewFragment extends Fragment {
 
         leftButton = (Button) getActivity().findViewById(R.id.left_button);
         rightButton = (Button) getActivity().findViewById(R.id.right_button);
-        selectedView = (TextView) getActivity().findViewById(R.id.selected_view);
+        selectedView = (Button) getActivity().findViewById(R.id.selected_view);
 
         if (leftButton != null)
             leftButton.setOnClickListener(new View.OnClickListener() {
@@ -134,6 +135,15 @@ public class ShopMapViewFragment extends Fragment {
                     mCallback.onShopSelected(selected);
                 }
                 }
+            });
+
+        if(selectedView != null)
+            selectedView.setOnClickListener(new View.OnClickListener(){
+                public void onClick(View v){
+                    Intent intent = new Intent(getActivity(), DisplayShopInfoActivity.class);
+                    startActivity(intent);
+                }
+
             });
 
 
