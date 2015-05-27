@@ -226,52 +226,69 @@ public class ShopListViewFragment extends ListFragment {
         @Override
         public View getDataRow(int position, View convertView, ViewGroup parent) {
 
-            if (position != mSelected) {
-                ViewHolder viewHolder;
-                if (convertView == null || convertView.getTag() instanceof SelectedViewHolder) {
-                    // inflate the GridView item layout
-                    LayoutInflater inflater = LayoutInflater.from(getContext());
-                    convertView = inflater.inflate(R.layout.listview_shop_item, parent, false);
+            ViewHolder viewHolder;
+            LayoutInflater inflater = LayoutInflater.from(getContext());
 
-                    // initialize the view holder
-                    viewHolder = new ViewHolder();
-                    viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-                    viewHolder.tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
-                    viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
-                    convertView.setTag(viewHolder);
-                } else {
-                    // recycle the already inflated view
-                    viewHolder = (ViewHolder) convertView.getTag();
+            if (position == mSelected) {
+                viewHolder = new SelectedViewHolder();
+                convertView = inflater.inflate(R.layout.listview_selected_shop_item, parent, false);
+            } else {
+                viewHolder = new ViewHolder();
+                convertView = inflater.inflate(R.layout.listview_shop_item, parent, false);
+            }
+
+            // initialize the view holder
+            viewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
+            viewHolder.tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
+            viewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
+            viewHolder.tvNbReferences = (TextView) convertView.findViewById(R.id.nbReferences);
+            viewHolder.tvPrice = (TextView) convertView.findViewById(R.id.price);
+
+            // update the item view
+            Shop item = getItem(position);
+            viewHolder.tvTitle.setText(item.getName());
+            viewHolder.tvDistance.setText(item.getDistance());
+            viewHolder.tvAddress.setText(item.getAddress());
+
+            if (model.what.length() != 0) {
+                switch (item.getNbReferences()) {
+                    case 0:
+                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.no_reference));
+                        break;
+                    case 1:
+                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.one_reference));
+                        break;
+                    default:
+                        viewHolder.tvNbReferences.setText(String.valueOf(item.getNbReferences()) + mActivity.getString(R.string.references));
+                        break;
                 }
 
-                // update the item view
-                Shop item = getItem(position);
-                viewHolder.tvTitle.setText(item.getName());
-                viewHolder.tvDistance.setText(item.getDistance());
-                viewHolder.tvAddress.setText(item.getAddress());
+                if (item.getPrice_max().isNaN() && item.getPrice_min().isNaN()) {
+                    viewHolder.tvPrice.setText("Prix inconnu");
+                } else if (item.getPrice_min().isNaN()) {
+                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_max()) + " euros");
+                } else if (item.getPrice_max().isNaN()) {
+                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_min()) + " euros");
+                } else if (item.getPrice_max() == item.getPrice_min()) {
+                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_max()) + " euros");
+                } else {
+                    viewHolder.tvPrice.setText("de " + String.valueOf(item.getPrice_min()) + " euros à " + String.valueOf(item.getPrice_max()) + " euros");
+                }
 
-                return convertView;
             } else {
-                SelectedViewHolder selectedViewHolder;
-                // inflate the GridView item layout
-                LayoutInflater inflater = LayoutInflater.from(getContext());
-                convertView = inflater.inflate(R.layout.listview_selected_shop_item, parent, false);
+                viewHolder.tvNbReferences.setVisibility(View.GONE);
+                viewHolder.tvPrice.setVisibility(View.GONE);
+            }
+
+
+            if (position == mSelected) {
 
                 // initialize the view holder
-                selectedViewHolder = new SelectedViewHolder();
-                selectedViewHolder.tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
-                selectedViewHolder.tvDistance = (TextView) convertView.findViewById(R.id.tvDistance);
-                selectedViewHolder.tvAddress = (TextView) convertView.findViewById(R.id.tvAddress);
+                SelectedViewHolder selectedViewHolder = (SelectedViewHolder) viewHolder;
                 selectedViewHolder.bMail = (Button) convertView.findViewById(R.id.bMail);
                 selectedViewHolder.bPhone = (Button) convertView.findViewById(R.id.bTel);
-                convertView.setTag(selectedViewHolder);
 
                 // update the item view
-                final Shop item = getItem(position);
-                selectedViewHolder.tvTitle.setText(item.getName());
-                selectedViewHolder.tvDistance.setText(item.getDistance());
-                selectedViewHolder.tvAddress.setText(item.getAddress());
-
                 if (item.getEmail().length() != 0) {
                     selectedViewHolder.bMail.setText(item.getEmail());
                     selectedViewHolder.bMail.setOnClickListener(new View.OnClickListener() {
@@ -315,10 +332,9 @@ public class ShopListViewFragment extends ListFragment {
                         startActivity(intent);
                     }
                 });
-
-                return convertView;
-
             }
+            convertView.setTag(viewHolder);
+            return convertView;
         }
 
 
@@ -327,19 +343,19 @@ public class ShopListViewFragment extends ListFragment {
          * repeatedly in the getView() method of the adapter.
          */
         private class ViewHolder {
-            ImageView ivIcon;
+
             TextView tvTitle;
             TextView tvDistance;
             TextView tvAddress;
+            TextView tvNbReferences;
+            TextView tvPrice;
         }
-
 
         private class SelectedViewHolder extends ViewHolder {
+            ImageView ivIcon;
             Button bMail;
             Button bPhone;
-
         }
-
     }
 
 

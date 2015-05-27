@@ -10,10 +10,16 @@
     <!-- the innner view - provides the white rectangle -->
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:background="@drawable/frame"
+        android:padding="5dp"
+        android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="5dp">
+        >
         <!-- the title view -->
         <TextView
             android:id="@+id/tvTitle"
@@ -40,6 +46,30 @@
             android:gravity="end"
             android:textAppearance="@android:style/TextAppearance.Small"
             />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <!-- the title view -->
+        <TextView
+            android:id="@+id/nbReferences"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            />
+
+        <!-- the distance view -->
+        <TextView
+            android:id="@+id/price"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            android:layout_gravity="end"
+            android:gravity="end"
+            />
+    </LinearLayout>
     </LinearLayout>
 
 </RelativeLayout>
