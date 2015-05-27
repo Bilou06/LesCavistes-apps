@@ -230,16 +230,18 @@ public class SearchActivity extends AppCompatActivity implements
                     public void onResponse(JSONArray response) {
 
                         try {
-                            // Parsing json array response
-                            model.shopList = new Results<Shop>();
-                            model.shopList.size = Integer.parseInt(response.get(0).toString());
+                            synchronized (model.shopList) {
+                                // Parsing json array response
+                                model.shopList = new Results<Shop>();
+                                model.shopList.size = Integer.parseInt(response.get(0).toString());
 
-                            for (int i = 1; i < response.length(); i++) {
+                                for (int i = 1; i < response.length(); i++) {
 
-                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
-                                Shop shop = new Shop(jsonShop);
-                                model.shopList.items.add(shop);
+                                    JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
+                                    Shop shop = new Shop(jsonShop);
+                                    model.shopList.items.add(shop);
 
+                                }
                             }
 
                             startActivity(intent);

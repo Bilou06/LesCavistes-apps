@@ -46,7 +46,7 @@ import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
 
 public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener,
-                    ShopMapViewFragment.OnShopSelectedListener{
+        ShopMapViewFragment.OnShopSelectedListener {
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -192,21 +192,22 @@ public class DisplayShopListActivity extends AppCompatActivity
 
                         try {
                             // Parsing json array response
+                            synchronized (model.shopList) {
+                                model.shopList.size = Integer.parseInt(response.get(0).toString());
 
-                            model.shopList.size = Integer.parseInt(response.get(0).toString());
+                                ArrayList<Shop> newShops = new ArrayList<Shop>();
+                                for (int i = 1; i < response.length(); i++) {
 
-                            ArrayList<Shop> newShops = new ArrayList<Shop>();
-                            for (int i = 1; i < response.length(); i++) {
+                                    JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
+                                    Shop shop = new Shop(jsonShop);
 
-                                JSONObjectUtf8 jsonShop = new JSONObjectUtf8((JSONObject) response.get(i));
-                                Shop shop = new Shop(jsonShop);
+                                    model.shopList.items.add(shop);
+                                    newShops.add(shop);
 
-                                model.shopList.items.add(shop);
-                                newShops.add(shop);
+                                }
 
                             }
-
-                            getListFragment().addContent(model.shopList.size, newShops);
+                            getListFragment().refresh();
                             getMapFragment().refresh();
 
 
@@ -302,12 +303,12 @@ public class DisplayShopListActivity extends AppCompatActivity
         }
 
         public ShopListViewFragment getListFragment() {
-            if (mListFragment!= null) return mListFragment;
+            if (mListFragment != null) return mListFragment;
             else return (ShopListViewFragment) getItem(0);
         }
 
         public ShopMapViewFragment getMapFragment() {
-            if (mMapFragment!= null) return mMapFragment;
+            if (mMapFragment != null) return mMapFragment;
             else return (ShopMapViewFragment) getItem(1);
         }
 

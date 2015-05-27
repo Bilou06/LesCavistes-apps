@@ -7,10 +7,10 @@ import java.io.Serializable;
  */
 public class Model implements Serializable {
 
-    public Double lng, lat;
-    public String where, what;
-    public Results<Shop> shopList;
-    public Results<Wine> wineList;
+    public volatile Double lng, lat;
+    public volatile String where, what;
+    public volatile Results<Shop> shopList;
+    public volatile Results<Wine> wineList;
 
     public Model(){
         wineList = new Results<Wine>();

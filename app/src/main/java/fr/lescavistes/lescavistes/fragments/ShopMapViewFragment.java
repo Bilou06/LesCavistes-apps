@@ -120,10 +120,11 @@ public class ShopMapViewFragment extends Fragment {
         if (rightButton != null)
             rightButton.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    int selected = model.shopList.selected;
-                    if (selected >= model.shopList.size)
-                        return;
-                    selected++;
+                    synchronized (model.shopList) {
+                        int selected = model.shopList.selected;
+                        if (selected >= model.shopList.size)
+                            return;
+                        selected++;
 
                     if (selected >= model.shopList.items.size()) {
                         ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(model.shopList.items.size());
@@ -131,6 +132,7 @@ public class ShopMapViewFragment extends Fragment {
                     }
 
                     mCallback.onShopSelected(selected);
+                }
                 }
             });
 
@@ -148,7 +150,10 @@ public class ShopMapViewFragment extends Fragment {
         MapsInitializer.initialize(this.getActivity());
 
         // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
+        CameraUpdate cameraUpdate;
+        synchronized (model) {
+            cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
+        }
         map.moveCamera(cameraUpdate);
 
         map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -169,32 +174,36 @@ public class ShopMapViewFragment extends Fragment {
         boolean camToUpdate = false;
         if (bounds == null) {
             bounds = new LatLngBounds.Builder();
-            bounds.include(new LatLng(model.lat, model.lng));
+            synchronized (model) {
+                bounds.include(new LatLng(model.lat, model.lng));
+            }
             camToUpdate = true;
         }
         LatLngBounds previousBounds = bounds.build();
 
-        for (int i = 0; i < model.shopList.items.size(); i++) {
-            Shop shop = (Shop)model.shopList.items.get(i);
-            LatLng pos = new LatLng(shop.getLat(), shop.getLng());
-            MarkerOptions m = new MarkerOptions()
-                    .position(pos)
-                    .title(shop.getName());
-            Marker marker;
-            if (i != model.shopList.selected) {
-                //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
-                if (!boundsSet) {
+        synchronized (model.shopList) {
+            for (int i = 0; i < model.shopList.items.size(); i++) {
+                Shop shop = (Shop) model.shopList.items.get(i);
+                LatLng pos = new LatLng(shop.getLat(), shop.getLng());
+                MarkerOptions m = new MarkerOptions()
+                        .position(pos)
+                        .title(shop.getName());
+                Marker marker;
+                if (i != model.shopList.selected) {
+                    //map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                    marker = map.addMarker(m.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_small_location)));
+                    if (!boundsSet) {
+                        camToUpdate = camToUpdate || !previousBounds.contains(pos);
+                        bounds.include(pos);
+                    }
+                } else {
+                    marker = map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                     camToUpdate = camToUpdate || !previousBounds.contains(pos);
                     bounds.include(pos);
+                    boundsSet = true;
                 }
-            } else {
-                marker = map.addMarker(m.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                camToUpdate = camToUpdate || !previousBounds.contains(pos);
-                bounds.include(pos);
-                boundsSet = true;
+                shopsMarkerMap.put(marker, shop);
             }
-            shopsMarkerMap.put(marker, shop);
         }
 
         if (camToUpdate)
@@ -217,28 +226,30 @@ public class ShopMapViewFragment extends Fragment {
 
     private void updateButtons() {
 
-        int selected = model.shopList.selected;
+        synchronized (model.shopList) {
+            int selected = model.shopList.selected;
 
-        if (leftButton != null)
-            if (selected != 0) {
-                leftButton.setEnabled(true);
-                leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left_enabled));
-            } else {
-                leftButton.setEnabled(false);
-                leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
-            }
+            if (leftButton != null)
+                if (selected != 0) {
+                    leftButton.setEnabled(true);
+                    leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left_enabled));
+                } else {
+                    leftButton.setEnabled(false);
+                    leftButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_left));
+                }
 
-        if (selectedView != null && model.shopList.items != null && selected < model.shopList.items.size())
-            selectedView.setText(((Shop) model.shopList.items.get(selected)).getName());
+            if (selectedView != null && model.shopList.items != null && selected < model.shopList.items.size())
+                selectedView.setText(((Shop) model.shopList.items.get(selected)).getName());
 
-        if (rightButton != null)
-            if (selected != model.shopList.size - 1) {
-                rightButton.setEnabled(true);
-                rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
-            } else {
-                rightButton.setEnabled(false);
-                rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right));
-            }
+            if (rightButton != null)
+                if (selected != model.shopList.size - 1) {
+                    rightButton.setEnabled(true);
+                    rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right_enabled));
+                } else {
+                    rightButton.setEnabled(false);
+                    rightButton.setBackgroundDrawable(getActivity().getResources().getDrawable(R.drawable.ic_action_right));
+                }
+        }
     }
 
     public void onClick(Marker m) {

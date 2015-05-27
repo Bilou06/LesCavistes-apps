@@ -37,7 +37,9 @@ import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.core.Wine;
 import fr.lescavistes.lescavistes.fragments.ShopGotoViewFragment;
+import fr.lescavistes.lescavistes.fragments.ShopInfoGotoViewFragment;
 import fr.lescavistes.lescavistes.fragments.ShopInfoViewFragment;
+import fr.lescavistes.lescavistes.fragments.WineListViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
@@ -46,17 +48,10 @@ import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
  */
 public class DisplayShopInfoActivity extends AppCompatActivity {
 
-    ShopFragmentPagerAdapter mShopFragmentPagerAdapter;
-    ViewPager mViewPager;
+    private ShopFragmentPagerAdapter mShopFragmentPagerAdapter;
+    private ViewPager mViewPager;
 
-    private ShopInfoViewFragment mInfoViewFragment;
-    private ShopGotoViewFragment mGotoViewFragment;
-
-    private Boolean mSwipeLayout;
-
-    Model model;
-
-    private Results mWines;
+    private Model model;
 
 
     @Override
@@ -69,77 +64,70 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         model = MainApplication.getModel();
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        mSwipeLayout = (mViewPager != null);
+        Boolean bSmallLayout = (mViewPager != null);
+        if (!bSmallLayout)
+            mViewPager = (ViewPager) findViewById(R.id.pager_large);
 
-        if (mSwipeLayout) {
-            // action bar
-            final ActionBar actionBar = getSupportActionBar();
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-            // Create a tab listener that is called when the user changes tabs.
-            ActionBar.TabListener tabListener = new ActionBar.TabListener() {
-                public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-                    // When the tab is selected, switch to the
-                    // corresponding page in the ViewPager.
-                    mViewPager.setCurrentItem(tab.getPosition());
-                }
+        // action bar
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-                public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-                    // hide the given tab
-                }
+        // Create a tab listener that is called when the user changes tabs.
+        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+            public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+                // When the tab is selected, switch to the
+                // corresponding page in the ViewPager.
+                mViewPager.setCurrentItem(tab.getPosition());
+            }
 
-                public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
-                    // probably ignore this event
-                }
-            };
+            public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+                // hide the given tab
+            }
 
-            // Add 2 tabs
-            ActionBar.Tab tab = actionBar.newTab()
-                    .setIcon(R.drawable.ic_action_info)
-                    .setTabListener(tabListener);
-            actionBar.addTab(tab);
+            public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+                // probably ignore this event
+            }
+        };
 
+        // Add tabs
+        ActionBar.Tab tab;
+        tab = actionBar.newTab()
+                .setIcon(R.drawable.ic_action_info)
+                .setTabListener(tabListener);
+        actionBar.addTab(tab);
+
+        if (bSmallLayout) {
             tab = actionBar.newTab()
                     .setIcon(R.drawable.ic_tab_goto)
                     .setTabListener(tabListener);
             actionBar.addTab(tab);
-
-
-            mViewPager.setOnPageChangeListener(
-                    new ViewPager.SimpleOnPageChangeListener() {
-
-                        @Override
-                        public void onPageSelected(int newPosition) {
-                            // When swiping between pages, select the
-                            // corresponding tab.
-                            actionBar.setSelectedNavigationItem(newPosition);
-                        }
-                    });
-
         }
+
+        tab = actionBar.newTab()
+                .setIcon(R.drawable.ic_tab_wine_list)
+                .setTabListener(tabListener);
+        actionBar.addTab(tab);
+
+
+        mViewPager.setOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
+
+                    @Override
+                    public void onPageSelected(int newPosition) {
+                        // When swiping between pages, select the
+                        // corresponding tab.
+                        actionBar.setSelectedNavigationItem(newPosition);
+                    }
+                });
 
 
         // Create the content fragments : map and list
-
-        if (mSwipeLayout) {
-            mShopFragmentPagerAdapter =
-                    new ShopFragmentPagerAdapter(getSupportFragmentManager());
-            mViewPager.setAdapter(mShopFragmentPagerAdapter);
-
-        } else if (savedInstanceState == null) {
-            android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            mInfoViewFragment = new ShopInfoViewFragment();
-            transaction.add(R.id.list_shops, mInfoViewFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-
-            transaction = getSupportFragmentManager().beginTransaction();
-            mGotoViewFragment = new ShopGotoViewFragment();
-            transaction.add(R.id.map_shops, mGotoViewFragment);
-            transaction.addToBackStack(null);
-            transaction.commit();
-        }
+        mShopFragmentPagerAdapter =
+                new ShopFragmentPagerAdapter(getSupportFragmentManager());
+        mShopFragmentPagerAdapter.setLayout(bSmallLayout);
+        mViewPager.setAdapter(mShopFragmentPagerAdapter);
 
     }
 
@@ -177,7 +165,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
 
     // Append more data into the adapter
-    public void loadMoreDataFromApi(int offset) {
+    public void loadMoreDataFromApi(final int offset) {
         // Request the wine list from the url.
         String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(model.shopList.getSelected().getId()) + "&q=" + model.what + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
@@ -188,21 +176,24 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
                         try {
                             // Parsing json array response
+                            if (offset == 0)
+                                model.wineList = new Results<Wine>();
+                            synchronized (model.wineList) {
+                                model.wineList.size = Integer.parseInt(response.get(0).toString());
 
-                            mWines.size = Integer.parseInt(response.get(0).toString());
+                                ArrayList<Wine> newWines = new ArrayList<Wine>();
+                                for (int i = 1; i < response.length(); i++) {
 
-                            ArrayList<Wine> newWines = new ArrayList<Wine>();
-                            for (int i = 1; i < response.length(); i++) {
+                                    JSONObjectUtf8 jsonWine = new JSONObjectUtf8((JSONObject) response.get(i));
+                                    Wine wine = new Wine(jsonWine);
 
-                                JSONObjectUtf8 jsonWine = new JSONObjectUtf8((JSONObject) response.get(i));
-                                Wine wine = new Wine(jsonWine);
+                                    model.wineList.items.add(wine);
+                                    newWines.add(wine);
 
-                                mWines.items.add(wine);
-                                newWines.add(wine);
+                                }
 
+                                //getWineListFragment().addContent(mWines.size, newWines);
                             }
-
-                            //getWineListFragment().addContent(mWines.size, newWines);
 
 
                         } catch (JSONException e) {
@@ -234,46 +225,62 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
     public class ShopFragmentPagerAdapter extends FragmentPagerAdapter {
 
-        static final int NUM_ITEMS = 2;
-
-        private Bundle args;
-
-        private ShopInfoViewFragment mInfoFragment;
-        private ShopGotoViewFragment mGotoFragment;
+        private boolean smallLayout;
 
         public ShopFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
-            args = new Bundle();
         }
 
-        public void setContent(Bundle args) {
-            this.args = args;
+        public void setLayout(boolean small) {
+            smallLayout = small;
         }
 
         @Override
         public Fragment getItem(int i) {
-            if (i == 0) {
-                mInfoFragment = new ShopInfoViewFragment();
-                mInfoFragment.setArguments(args);
-                return mInfoFragment;
-            } else {
-                mGotoFragment = new ShopGotoViewFragment();
-                mGotoFragment.setArguments(args);
-                return mGotoFragment;
-            }
+            if (smallLayout)
+                switch (i) {
+                    case 0:
+                        return new ShopInfoViewFragment();
+                    case 1:
+                        return new ShopGotoViewFragment();
+                    default:
+                        return new WineListViewFragment();
+                }
+            else
+                switch (i) {
+                    case 0:
+                        return  new ShopInfoGotoViewFragment();
+                    default:
+                        return new WineListViewFragment();
+                }
         }
 
         @Override
         public int getCount() {
-            return NUM_ITEMS;
+            if (smallLayout)
+                return 3;
+            else
+                return 2;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            if (position == 0)
-                return getString(R.string.shop_info);
+            if (smallLayout)
+            switch (position) {
+                case 0:
+                    return getString(R.string.shop_info);
+                case 1:
+                    return getString(R.string.itinerary);
+                default:
+                    return "Liste des vins";
+            }
             else
-                return getString(R.string.itinerary);
+                switch (position) {
+                    case 0:
+                        return getString(R.string.shop_info);
+                    default:
+                        return "Liste des vins";
+                }
         }
 
 

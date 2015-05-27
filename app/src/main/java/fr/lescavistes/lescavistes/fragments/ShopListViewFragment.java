@@ -37,18 +37,12 @@ import fr.lescavistes.lescavistes.utils.GenericAdapter;
  */
 public class ShopListViewFragment extends ListFragment {
 
-    private static final String ITEMS = "ITEMS";
-
     private static final String TAG = "List Fragment";
 
     OnShopSelectedListener mCallback;
-
-    private List<Shop> mItems;        // ListView items list
-    private Model model;
-
-    private ShopListAdapter mAdapter;
-
     EventBus bus = EventBus.getDefault();
+    private Model model;
+    private ShopListAdapter mAdapter;
 
     @Override
     public void onAttach(Activity activity) {
@@ -70,20 +64,6 @@ public class ShopListViewFragment extends ListFragment {
 
         model = MainApplication.getModel();
         bus.register(this);
-
-        if (mItems != null) {
-            return;
-        }
-
-        mItems = new ArrayList<>();
-        if (getArguments() != null) {
-
-            ArrayList<Shop> shopList = model.shopList.items;
-            if (shopList != null)
-                for (Shop shop : shopList) {
-                    mItems.add(shop);
-                }
-        }
     }
 
     @Override
@@ -100,10 +80,10 @@ public class ShopListViewFragment extends ListFragment {
             public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
 
-                if (totalItemsCount - 1 >  model.shopList.size)
+                if (totalItemsCount - 1 > model.shopList.size)
                     return;
 
-                ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount-2);
+                ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount - 2);
             }
         });
     }
@@ -113,20 +93,21 @@ public class ShopListViewFragment extends ListFragment {
         if (position > 0) {
 
             position = position - 1;//due to header
+            synchronized (model.shopList) {
+                if (model.shopList.selected != position) {
+                    //tell the activity
 
-            if ( model.shopList.selected != position) {
-                //tell the activity
+                    mCallback.onShopSelected(position);
 
-                mCallback.onShopSelected(position);
+                    // retrieve theListView item
+                    Shop item = model.shopList.items.get(position);
 
-                // retrieve theListView item
-                Shop item = mItems.get(position);
+                    // change the layout
+                    v.setSelected(true);
 
-                // change the layout
-                v.setSelected(true);
-
-                mAdapter.selectedItem(position);
-                mAdapter.notifyDataSetChanged();
+                    mAdapter.selectedItem(position);
+                    mAdapter.notifyDataSetChanged();
+                }
             }
         }
     }
@@ -135,87 +116,80 @@ public class ShopListViewFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        if (savedInstanceState != null) {
-            mItems = (List<Shop>) savedInstanceState.getSerializable(ITEMS);
-        }
-
         //add header
         View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
         TextView tv = (TextView) v.findViewById(R.id.nbResults);
-        ;
-        if ( model.shopList.size == 0) {
-            tv.setText("Aucun résultat");
-        } else if (model.shopList.size == 1) {
-            tv.setText("1 résultat");
-        } else {
-            tv.setText(String.valueOf(model.shopList.size) + " résultats");
+        switch (model.shopList.size) {
+            case 0:
+                tv.setText("Aucun résultat");
+                break;
+            case 1:
+                tv.setText("1 résultat");
+                break;
+            default:
+                tv.setText(String.valueOf(model.shopList.size) + " résultats");
+                break;
         }
 
         this.getListView().addHeaderView(v);
 
         // initialize and set the list adapter
 
-        mAdapter = new ShopListAdapter(getActivity(), mItems);
-        mAdapter.setServerListSize(model.shopList.size);
-        mAdapter.selectedItem(model.shopList.selected);
-        setListAdapter(mAdapter);
+        synchronized (model.shopList) {
+            mAdapter = new ShopListAdapter(getActivity(), model.shopList.items);
+            mAdapter.setServerListSize(model.shopList.size);
+            mAdapter.selectedItem(model.shopList.selected);
+            setListAdapter(mAdapter);
 
-        // select the element
-        int selected = model.shopList.selected;
-        if (selected > -1 && selected < mItems.size()) {
-            Shop selectedItem = mItems.get(selected);
-            if (selectedItem != null) {
-                getListView().setSelection(selected);
-                getListView().setItemChecked(selected, true);
-                getListView().getAdapter().getView(selected, null, null).setSelected(true);
-                getListView().requestFocus();
+
+            // select the element
+            int selected = model.shopList.selected;
+            if (selected > -1 && selected < model.shopList.items.size()) {
+                Shop selectedItem = model.shopList.items.get(selected);
+                if (selectedItem != null) {
+                    getListView().setSelection(selected);
+                    getListView().setItemChecked(selected, true);
+                    getListView().getAdapter().getView(selected, null, null).setSelected(true);
+                    getListView().requestFocus();
+                }
             }
         }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable(ITEMS, (Serializable) mItems);
-    }
-
-    @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
-        if(mCallback!=null) {
+        if (mCallback != null) {
             mAdapter.selectedItem(model.shopList.selected);
             mAdapter.notifyDataSetChanged();
         }
     }
 
-    public void addContent(int size, ArrayList<Shop> shopList) {
-        if (mItems == null)
-            mItems = new ArrayList<Shop>();
-        // initialize the items list
-        if (shopList != null)
-            for (Shop shop : shopList) {
-                mItems.add(shop);
-            }
+    public void refresh() {
 
         int index = 0;
         int top = 0;
-        if (getListView()!=null) {
+        if (getListView() != null) {
             index = getListView().getFirstVisiblePosition();
             View v = getListView().getChildAt(0);
             top = (v == null) ? 0 : (v.getTop() - getListView().getPaddingTop());
         }
-        mAdapter = new ShopListAdapter(getActivity(), mItems);
-        mAdapter.setServerListSize(size);
-        setListAdapter(mAdapter);
+        synchronized (model.shopList) {
+            mAdapter = new ShopListAdapter(getActivity(), model.shopList.items);
+            mAdapter.setServerListSize(model.shopList.size);
+            setListAdapter(mAdapter);
+        }
 
-        if (getListView()!=null) {
+        if (getListView() != null) {
             getListView().setSelectionFromTop(index, top);
         }
     }
 
     public void onEvent(SelectionChangedEvent event) {
-        mAdapter.selectedItem(model.shopList.selected);
-        mAdapter.notifyDataSetChanged();
+        synchronized (model.shopList) {
+            mAdapter.selectedItem(model.shopList.selected);
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     private View getViewByPosition(int pos, ListView listView) {
@@ -334,7 +308,7 @@ public class ShopListViewFragment extends ListFragment {
                 Button open = (Button) convertView.findViewById(R.id.bOpen);
                 open.setEnabled(true);
                 open.setClickable(true);
-                open.setOnClickListener(new View.OnClickListener(){
+                open.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(getContext(), DisplayShopInfoActivity.class);

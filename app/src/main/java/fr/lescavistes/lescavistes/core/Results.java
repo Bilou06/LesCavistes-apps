@@ -8,9 +8,9 @@ import java.util.ArrayList;
  */
 public class Results<T> implements Serializable{
 
-    public int selected;
-    public int size;
-    public ArrayList<T> items;
+    public volatile int selected;
+    public volatile int size;
+    public volatile ArrayList<T> items;
 
     public Results(){
         this.items=new ArrayList<T>();
@@ -18,7 +18,7 @@ public class Results<T> implements Serializable{
         this.selected=0;
     }
 
-    public T getSelected(){
+    public synchronized T getSelected(){
         if(items == null)
             return null;
 

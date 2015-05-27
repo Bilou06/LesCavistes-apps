@@ -88,8 +88,12 @@ public class ShopGotoViewFragment extends Fragment {
         MapsInitializer.initialize(this.getActivity());
 
         // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
+        CameraUpdate cameraUpdate;
+        synchronized (model) {
+            cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
+        }
         map.moveCamera(cameraUpdate);
+
 
         setMarkers();
 
@@ -97,8 +101,14 @@ public class ShopGotoViewFragment extends Fragment {
     }
 
     private void setPath(){
-        Shop shop = model.shopList.getSelected();
-        String url = makepathURL(model.lat, model.lng, shop.getLat(), shop.getLng());
+        String url;
+        synchronized (model) {
+            Shop shop = model.shopList.getSelected();
+
+            synchronized (shop) {
+                url = makepathURL(model.lat, model.lng, shop.getLat(), shop.getLng());
+            }
+        }
 
         StringRequest stringRequest = new StringRequest(url,
                 new Response.Listener<String>() {
@@ -139,7 +149,9 @@ public class ShopGotoViewFragment extends Fragment {
         //map.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
 
         final LatLngBounds.Builder bounds = new LatLngBounds.Builder();
-        bounds.include(new LatLng(model.lat, model.lng));
+        synchronized (model) {
+            bounds.include(new LatLng(model.lat, model.lng));
+        }
 
         Shop shop = model.shopList.getSelected();
         LatLng pos = new LatLng(shop.getLat(), shop.getLng());
