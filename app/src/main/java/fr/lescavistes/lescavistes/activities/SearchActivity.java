@@ -83,6 +83,16 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         model = MainApplication.getModel();
+
+        if (model.what != null && model.what.length() != 0){
+            EditText what = (EditText) findViewById(R.id.query_what);
+            what.setText(model.what);
+        }
+
+        if (model.where != null && model.where.length() != 0){
+            EditText what = (EditText) findViewById(R.id.query_where);
+            what.setText(model.where);
+        }
     }
 
     /**

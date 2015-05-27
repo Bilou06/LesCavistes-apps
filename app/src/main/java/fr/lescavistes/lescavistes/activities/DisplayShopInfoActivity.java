@@ -176,10 +176,8 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
 
                         try {
                             // Parsing json array response
-                            if (offset == 0)
-                                model.wineList = new Results<Wine>();
-                            synchronized (model.wineList) {
-                                model.wineList.size = Integer.parseInt(response.get(0).toString());
+                            synchronized (model.getWineList()) {
+                                model.getWineList().size = Integer.parseInt(response.get(0).toString());
 
                                 ArrayList<Wine> newWines = new ArrayList<Wine>();
                                 for (int i = 1; i < response.length(); i++) {
@@ -187,12 +185,10 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
                                     JSONObjectUtf8 jsonWine = new JSONObjectUtf8((JSONObject) response.get(i));
                                     Wine wine = new Wine(jsonWine);
 
-                                    model.wineList.items.add(wine);
+                                    model.getWineList().items.add(wine);
                                     newWines.add(wine);
-
                                 }
-
-                                //getWineListFragment().addContent(mWines.size, newWines);
+                                mShopFragmentPagerAdapter.getWineListFragment().refresh();
                             }
 
 
@@ -226,6 +222,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
     public class ShopFragmentPagerAdapter extends FragmentPagerAdapter {
 
         private boolean smallLayout;
+        private WineListViewFragment wineListViewFragment;
 
         public ShopFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -243,15 +240,17 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
                         return new ShopInfoViewFragment();
                     case 1:
                         return new ShopGotoViewFragment();
-                    default:
-                        return new WineListViewFragment();
+                    default: //beware to getWineListFragment if you modify this
+                        wineListViewFragment = new WineListViewFragment();
+                        return wineListViewFragment;
                 }
             else
                 switch (i) {
                     case 0:
                         return  new ShopInfoGotoViewFragment();
-                    default:
-                        return new WineListViewFragment();
+                    default: //beware to getWineListFragment if you modify this
+                        wineListViewFragment = new WineListViewFragment();
+                        return wineListViewFragment;
                 }
         }
 
@@ -284,6 +283,9 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         }
 
 
+        public WineListViewFragment getWineListFragment() {
+            if (wineListViewFragment != null) return wineListViewFragment;
+            else return (WineListViewFragment) getItem(2);
+        }
     }
-
 }

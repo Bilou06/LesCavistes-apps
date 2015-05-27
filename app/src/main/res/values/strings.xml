@@ -25,7 +25,8 @@
     <string name="shop_info">Information du magasin</string>
     <string name="title_activity_display_shop_info">Magasin</string>
     <string name="impossible_to_draw_path">Impossible d\'afficher le chemin, merci de réessayer plus tard</string>
-    <string name="no_reference">Aucun résultat</string>
-    <string name="one_reference">1 résultat</string>
-    <string name="references">résultats</string>
+    <string name="no_result">Aucun résultat</string>
+    <string name="one_result">1 résultat</string>
+    <string name="results">" résultats"</string>
+    <string name="from_to" formatted="false">de %1 à %2</string>
 </resources>

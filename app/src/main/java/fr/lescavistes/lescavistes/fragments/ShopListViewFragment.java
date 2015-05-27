@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,13 +32,14 @@ import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
 import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.utils.EndlessScrollListener;
 import fr.lescavistes.lescavistes.utils.GenericAdapter;
+import fr.lescavistes.lescavistes.utils.PriceFormat;
 
 /**
  * Created by Sylvain on 05/05/2015.
  */
 public class ShopListViewFragment extends ListFragment {
 
-    private static final String TAG = "List Fragment";
+    private static final String TAG = "Shop List Fragment";
 
     OnShopSelectedListener mCallback;
     EventBus bus = EventBus.getDefault();
@@ -192,18 +194,6 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
-    private View getViewByPosition(int pos, ListView listView) {
-        final int firstListItemPosition = listView.getFirstVisiblePosition();
-        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
-
-        if (pos < firstListItemPosition || pos > lastListItemPosition) {
-            return listView.getAdapter().getView(pos, null, listView);
-        } else {
-            final int childIndex = pos - firstListItemPosition;
-            return listView.getChildAt(childIndex);
-        }
-    }
-
     //Container activity must implement this interface
     public interface OnShopSelectedListener {
         public void onShopSelected(int id);
@@ -253,26 +243,27 @@ public class ShopListViewFragment extends ListFragment {
             if (model.what.length() != 0) {
                 switch (item.getNbReferences()) {
                     case 0:
-                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.no_reference));
+                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.no_result));
                         break;
                     case 1:
-                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.one_reference));
+                        viewHolder.tvNbReferences.setText(mActivity.getString(R.string.one_result));
                         break;
                     default:
-                        viewHolder.tvNbReferences.setText(String.valueOf(item.getNbReferences()) + mActivity.getString(R.string.references));
+                        viewHolder.tvNbReferences.setText(String.valueOf(item.getNbReferences()) + mActivity.getString(R.string.results));
                         break;
                 }
+
 
                 if (item.getPrice_max().isNaN() && item.getPrice_min().isNaN()) {
                     viewHolder.tvPrice.setText("Prix inconnu");
                 } else if (item.getPrice_min().isNaN()) {
-                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_max()) + " euros");
+                    viewHolder.tvPrice.setText(PriceFormat.format(item.getPrice_max()));
                 } else if (item.getPrice_max().isNaN()) {
-                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_min()) + " euros");
+                    viewHolder.tvPrice.setText(PriceFormat.format(item.getPrice_min()));
                 } else if (item.getPrice_max() == item.getPrice_min()) {
-                    viewHolder.tvPrice.setText(String.valueOf(item.getPrice_max()) + " euros");
+                    viewHolder.tvPrice.setText(PriceFormat.format(item.getPrice_max()));
                 } else {
-                    viewHolder.tvPrice.setText("de " + String.valueOf(item.getPrice_min()) + " euros à " + String.valueOf(item.getPrice_max()) + " euros");
+                    viewHolder.tvPrice.setText("de " + PriceFormat.format(item.getPrice_min()) + " à " + PriceFormat.format(item.getPrice_max()));
                 }
 
             } else {

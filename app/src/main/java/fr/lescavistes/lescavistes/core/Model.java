@@ -1,6 +1,11 @@
 package fr.lescavistes.lescavistes.core;
 
+import android.widget.Toast;
+
 import java.io.Serializable;
+import java.util.HashMap;
+
+import fr.lescavistes.lescavistes.MainApplication;
 
 /**
  * Created by Sylvain on 26/05/2015.
@@ -10,10 +15,10 @@ public class Model implements Serializable {
     public volatile Double lng, lat;
     public volatile String where, what;
     public volatile Results<Shop> shopList;
-    public volatile Results<Wine> wineList;
+    private volatile HashMap<QueryData,Results<Wine>> wineLists;
 
     public Model(){
-        wineList = new Results<Wine>();
+        wineLists = new HashMap<QueryData, Results<Wine>>();
         shopList = new Results<Shop>();
     }
 
@@ -23,5 +28,40 @@ public class Model implements Serializable {
 
     public String getLng(){
         return String.valueOf(lng);
+    }
+
+    public synchronized Results<Wine> getWineList(){
+        QueryData data = new QueryData();
+        data.shop = shopList.selected;
+        data.what = what;
+        if ( wineLists.containsKey(data) )
+            return wineLists.get(data);
+
+        Results<Wine> wineList = new Results<Wine>();
+        wineLists.put(data, wineList);
+        return wineList;
+    }
+
+    private class QueryData {
+        public int shop;
+        public String what;
+
+        @Override
+        public int hashCode() {
+            return what.hashCode()+shop;
+        }
+
+        //Compare only account numbers
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            QueryData other = (QueryData) obj;
+            return other.shop == shop && other.what == what;
+        }
     }
 }
