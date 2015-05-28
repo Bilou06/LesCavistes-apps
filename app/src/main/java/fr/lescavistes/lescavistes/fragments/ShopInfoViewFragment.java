@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -109,12 +110,24 @@ public class ShopInfoViewFragment extends Fragment {
 
         //get image from server
         final ImageView image = (ImageView) v.findViewById(R.id.ivImage);
-        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(mShop.getId())+'/'+mShop.getImg();
+        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(mShop.getId())+'/'+getDPI()+'/'+mShop.getImg();
         Picasso.with(getActivity())
                 .load(get_url)
                 .placeholder(R.attr.indeterminateProgressStyle)
                 .into(image);
         
         return v;
+    }
+
+    private String getDPI(){
+        float density = getResources().getDisplayMetrics().density;
+        if (density < 0.8)
+            return "ldpi";
+        if (density < 1.2)
+            return "mdpi";
+        if (density < 1.8)
+            return "hdpi";
+        else
+            return "xhdpi";
     }
 }
