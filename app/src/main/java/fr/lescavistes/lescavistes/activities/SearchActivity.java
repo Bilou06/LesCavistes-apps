@@ -35,8 +35,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -62,6 +60,8 @@ public class SearchActivity extends AppCompatActivity implements
     private Geocoder mGeocoder = null;
 
     private Model model;
+
+    private boolean processingRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +93,8 @@ public class SearchActivity extends AppCompatActivity implements
             EditText what = (EditText) findViewById(R.id.query_where);
             what.setText(model.where);
         }
+
+        processingRequest = false;
     }
 
     /**
@@ -238,6 +240,7 @@ public class SearchActivity extends AppCompatActivity implements
 
                     @Override
                     public void onResponse(JSONArray response) {
+                        processingRequest=false;
 
                         try {
                             synchronized (model.shopList) {
@@ -265,7 +268,7 @@ public class SearchActivity extends AppCompatActivity implements
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-
+                processingRequest=false;
                 if (error instanceof TimeoutError || error instanceof AuthFailureError || error instanceof ServerError || error instanceof ParseError) {
                     Toast.makeText(getApplicationContext(),
                             "Le site est en maintenance. Merci de réessayer dans quelques minutes",
@@ -278,7 +281,9 @@ public class SearchActivity extends AppCompatActivity implements
             }
         });
         // Add the request to the RequestQueue.
-        MainApplication.getInstance().getRequestQueue().add(jsonRequest);
+        if(!processingRequest)
+            MainApplication.getInstance().getRequestQueue().add(jsonRequest);
+        processingRequest = true;
 
     }
 }

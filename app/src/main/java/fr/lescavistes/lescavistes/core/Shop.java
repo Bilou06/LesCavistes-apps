@@ -20,6 +20,7 @@ public class Shop implements Serializable {
     private String description;
     private Double lat, lng;
     private Double dist;
+    private String img;//used by cache manager
 
     //number of references
     private int nb;
@@ -42,6 +43,8 @@ public class Shop implements Serializable {
         JSONObject price = shop.optJSONObject("price");
         price_min = price.optDouble("price_min__min");
         price_max = price.optDouble("price_max__max");
+
+        img = shop.optString("img");
     }
 
     public String getName() {
@@ -98,6 +101,10 @@ public class Shop implements Serializable {
 
     public String getWeb(){
         return web;
+    }
+
+    public String getImg() {
+        return img;
     }
 }
 

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,8 @@ import android.widget.Toast;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
+import com.google.android.gms.common.images.ImageManager;
+import com.squareup.picasso.Picasso;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
@@ -28,6 +31,7 @@ import fr.lescavistes.lescavistes.core.Shop;
  */
 public class ShopInfoViewFragment extends Fragment {
 
+    private String TAG = "ShopInfoViewFragment";
     private Shop mShop;
 
     @Override
@@ -105,32 +109,11 @@ public class ShopInfoViewFragment extends Fragment {
 
         //get image from server
         final ImageView image = (ImageView) v.findViewById(R.id.ivImage);
-        final ProgressBar progressBar = (ProgressBar) v.findViewById(R.id.ivImageProgress);
-
-        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(mShop.getId());
-        ImageRequest imageRequest = new ImageRequest(get_url,
-                new Response.Listener<Bitmap>() {
-
-                    @Override
-                    public void onResponse(Bitmap response) {
-
-                        try {
-                            image.setImageBitmap(response);
-                        } catch (Exception e) {
-                        }
-                        progressBar.setVisibility(View.INVISIBLE);
-                    }
-                }, 0, 0, null,
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.INVISIBLE);
-                    }
-                }
-        );
-
-        // Add the request to the RequestQueue.
-        MainApplication.getInstance().getRequestQueue().add(imageRequest);
+        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(mShop.getId())+'/'+mShop.getImg();
+        Picasso.with(getActivity())
+                .load(get_url)
+                .placeholder(R.attr.indeterminateProgressStyle)
+                .into(image);
         
         return v;
     }
