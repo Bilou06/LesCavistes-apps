@@ -49,7 +49,7 @@ public class Wine implements Serializable {
         } else if (price_max == price_min) {
             return PriceFormat.format(price_max);
         } else {
-            return String.format("de "+ PriceFormat.format(price_min) +" à " +PriceFormat.format(price_max));
+            return String.format("entre "+ PriceFormat.format(price_min) +"et " +PriceFormat.format(price_max));
         }
 
     }

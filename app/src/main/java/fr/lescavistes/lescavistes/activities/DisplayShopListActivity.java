@@ -1,7 +1,10 @@
 package fr.lescavistes.lescavistes.activities;
 
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -10,9 +13,15 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -36,6 +45,7 @@ import de.greenrobot.event.EventBus;
 import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.SelectionChangedEvent;
+import fr.lescavistes.lescavistes.fragments.SearchDialogFragment;
 import fr.lescavistes.lescavistes.fragments.ShopMapViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 import fr.lescavistes.lescavistes.MainApplication;
@@ -46,7 +56,8 @@ import fr.lescavistes.lescavistes.fragments.ShopListViewFragment;
 
 public class DisplayShopListActivity extends AppCompatActivity
         implements ShopListViewFragment.OnShopSelectedListener,
-        ShopMapViewFragment.OnShopSelectedListener {
+        ShopMapViewFragment.OnShopSelectedListener,
+        SearchDialogFragment.SearchDialogListener{
 
     private static final String TAG = "Display Shop List";
     ShopsFragmentPagerAdapter mShopsFragmentPagerAdapter;
@@ -141,6 +152,7 @@ public class DisplayShopListActivity extends AppCompatActivity
 
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
@@ -148,8 +160,8 @@ public class DisplayShopListActivity extends AppCompatActivity
             case R.id.action_search:
                 openSearch();
                 return true;
-            case R.id.action_settings:
-                openSettings();
+            case R.id.action_filter:
+                openFilter();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -160,15 +172,18 @@ public class DisplayShopListActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.search_activity_actions, menu);
+        inflater.inflate(R.menu.menu_shop_list_actions, menu);
+
+
         return super.onCreateOptionsMenu(menu);
     }
 
     private void openSearch() {
-
+        SearchDialogFragment dialog = new SearchDialogFragment();
+        dialog.show(getSupportFragmentManager(), "SearchDialogFragment");
     }
 
-    private void openSettings() {
+    private void openFilter() {
 
     }
 
@@ -179,11 +194,23 @@ public class DisplayShopListActivity extends AppCompatActivity
         bus.post(new SelectionChangedEvent(id));
     }
 
+    public void onSearchClick(SearchDialogFragment dialog){
+        search(dialog.getQuery());
+    }
+
+
+    private void search(String query) {
+        if (!model.what.equals(query)) {
+            model.what = query;
+            model.shopList = new Results<Shop>();
+            loadMoreDataFromApi(0);
+        }
+    }
 
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.lng + "&q=" + model.getLng() + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.what + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 

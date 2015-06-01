@@ -30,4 +30,5 @@ dependencies {
     compile files('libs/volley.jar')
     compile 'de.greenrobot:eventbus:2.4.0'
     compile 'com.squareup.picasso:picasso:2.3.3'
+
 }

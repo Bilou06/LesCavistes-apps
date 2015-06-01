@@ -1,7 +1,5 @@
 package fr.lescavistes.lescavistes.activities;
 
-import android.app.FragmentTransaction;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -33,9 +31,8 @@ import java.util.ArrayList;
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Model;
-import fr.lescavistes.lescavistes.core.Results;
-import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.core.Wine;
+import fr.lescavistes.lescavistes.fragments.SearchDialogFragment;
 import fr.lescavistes.lescavistes.fragments.ShopGotoViewFragment;
 import fr.lescavistes.lescavistes.fragments.ShopInfoGotoViewFragment;
 import fr.lescavistes.lescavistes.fragments.ShopInfoViewFragment;
@@ -139,8 +136,8 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
             case R.id.action_search:
                 openSearch();
                 return true;
-            case R.id.action_settings:
-                openSettings();
+            case R.id.action_filter:
+                openFilter();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -151,15 +148,17 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.search_activity_actions, menu);
+        inflater.inflate(R.menu.menu_shop_info_actions, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     private void openSearch() {
 
+
+
     }
 
-    private void openSettings() {
+    private void openFilter() {
 
     }
 

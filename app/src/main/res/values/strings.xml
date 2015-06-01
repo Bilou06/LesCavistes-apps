@@ -6,9 +6,9 @@
     <string name="query_what">Quoi ? Tous les vins</string>
 
     <string name="button_send">></string>
-    <string name="action_settings">Settings</string>
+    <string name="action_filter">Filtrer</string>
     <string name="title_activity_search">Recherche</string>
-    <string name="title_activity_display_shop_list">Résultats</string>
+    <string name="title_activity_display_shop_list">Liste des cavistes</string>
     <string name="action_search">Chercher</string>
     <string name="hello_world">Hello world!</string>
     <string name="search_where_presentation">Rechercher les cavistes près de chez vous</string>
@@ -23,10 +23,13 @@
     <string name="connection_error">Impossible de se connecter à internet. Merci de vérifier votre connexion.</string>
     <string name="itinerary">Itinéraire</string>
     <string name="shop_info">Information du magasin</string>
-    <string name="title_activity_display_shop_info">Magasin</string>
+    <string name="title_activity_display_shop_info">Caviste</string>
     <string name="impossible_to_draw_path">Impossible d\'afficher le chemin, merci de réessayer plus tard</string>
     <string name="no_result">Aucun résultat</string>
     <string name="one_result">1 résultat</string>
     <string name="results">" résultats"</string>
     <string name="from_to" formatted="false">de %1 à %2</string>
+    <string name="chose_wine">Choisissez un vin</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Annuler</string>
 </resources>

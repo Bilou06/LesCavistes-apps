@@ -153,29 +153,31 @@ public class ShopMapViewFragment extends Fragment {
     private void initMap() {
         // Gets to GoogleMap from the MapView and does initialization stuff
         map = mapView.getMap();
-        map.getUiSettings().setMyLocationButtonEnabled(false);
-        map.setMyLocationEnabled(true);
+        if (map != null || !MainApplication.isDebug()) {
+            map.getUiSettings().setMyLocationButtonEnabled(false);
+            map.setMyLocationEnabled(true);
 
-        // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
-        MapsInitializer.initialize(this.getActivity());
+            // Needs to call MapsInitializer before doing any CameraUpdateFactory calls
+            MapsInitializer.initialize(this.getActivity());
 
-        // Updates the location and zoom of the MapView
-        CameraUpdate cameraUpdate;
-        synchronized (model) {
-            cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
-        }
-        map.moveCamera(cameraUpdate);
-
-        map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition position) {
-                bounds = new LatLngBounds.Builder();
-                bounds.include(map.getProjection().getVisibleRegion().latLngBounds.northeast);
-                bounds.include(map.getProjection().getVisibleRegion().latLngBounds.southwest);
+            // Updates the location and zoom of the MapView
+            CameraUpdate cameraUpdate;
+            synchronized (model) {
+                cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(model.lat, model.lng), 14);
             }
-        });
+            map.moveCamera(cameraUpdate);
 
-        setMarkers();
+            map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+                @Override
+                public void onCameraChange(CameraPosition position) {
+                    bounds = new LatLngBounds.Builder();
+                    bounds.include(map.getProjection().getVisibleRegion().latLngBounds.northeast);
+                    bounds.include(map.getProjection().getVisibleRegion().latLngBounds.southwest);
+                }
+            });
+
+            setMarkers();
+        }
     }
 
     private void setMarkers() {
@@ -268,9 +270,11 @@ public class ShopMapViewFragment extends Fragment {
     }
 
     public void refresh() {
-        map.clear();
-        setMarkers();
-        updateButtons();
+        if(map!= null) {
+            map.clear();
+            setMarkers();
+            updateButtons();
+        }
     }
 
     public void onEvent(SelectionChangedEvent event) {

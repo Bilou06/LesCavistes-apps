@@ -103,8 +103,10 @@ public class WineListViewFragment extends ListFragment {
                 tv.setText(String.valueOf(shop.getNbReferences()) + getActivity().getString(R.string.results));
                 break;
         }
-
-        this.getListView().addHeaderView(v);
+        try {
+            this.getListView().addHeaderView(v);
+        }
+        catch(IllegalStateException e){}
 
         // initialize and set the list adapter
 
