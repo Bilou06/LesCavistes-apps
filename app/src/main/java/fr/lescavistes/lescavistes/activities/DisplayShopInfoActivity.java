@@ -43,10 +43,11 @@ import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 /**
  * Created by Sylvain on 26/05/2015.
  */
-public class DisplayShopInfoActivity extends AppCompatActivity {
+public class DisplayShopInfoActivity extends AppCompatActivity implements SearchDialogFragment.SearchDialogListener {
 
     private ShopFragmentPagerAdapter mShopFragmentPagerAdapter;
     private ViewPager mViewPager;
+    private Menu menu;
 
     private Model model;
 
@@ -61,7 +62,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         model = MainApplication.getModel();
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
-        Boolean bSmallLayout = (mViewPager != null);
+        final Boolean bSmallLayout = (mViewPager != null);
         if (!bSmallLayout)
             mViewPager = (ViewPager) findViewById(R.id.pager_large);
 
@@ -126,7 +127,35 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         mShopFragmentPagerAdapter.setLayout(bSmallLayout);
         mViewPager.setAdapter(mShopFragmentPagerAdapter);
 
+        mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (!bSmallLayout) {
+                    if (position == 1)
+                        menu.setGroupVisible(0, true);
+                    else
+                        menu.setGroupVisible(0, false);
+                } else {
+                    if (position == 2)
+                        menu.setGroupVisible(0, true);
+                    else
+                        menu.setGroupVisible(0, false);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+        //loadMoreDataFromApi(0);
     }
+
 
 
     @Override
@@ -149,13 +178,15 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_shop_info_actions, menu);
-        return super.onCreateOptionsMenu(menu);
+        boolean result = super.onCreateOptionsMenu(menu);
+        this.menu = menu;
+        menu.setGroupVisible(0, false);
+        return result;
     }
 
     private void openSearch() {
-
-
-
+        SearchDialogFragment dialog = new SearchDialogFragment();
+        dialog.show(getSupportFragmentManager(), "SearchDialogFragment");
     }
 
     private void openFilter() {
@@ -215,6 +246,17 @@ public class DisplayShopInfoActivity extends AppCompatActivity {
         // Add the request to the RequestQueue.
         MainApplication.getInstance().getRequestQueue().add(jsonRequest);
 
+    }
+
+    public void onSearchClick(SearchDialogFragment dialog){
+        search(dialog.getQuery());
+    }
+
+    private void search(String query) {
+        if (!model.what.equals(query)) {
+            model.what = query;
+            loadMoreDataFromApi(0);
+        }
     }
 
 

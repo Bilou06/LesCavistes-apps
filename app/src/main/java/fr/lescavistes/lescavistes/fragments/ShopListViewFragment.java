@@ -46,6 +46,8 @@ public class ShopListViewFragment extends ListFragment {
     private Model model;
     private ShopListAdapter mAdapter;
 
+    private TextView headertv;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -114,29 +116,12 @@ public class ShopListViewFragment extends ListFragment {
         }
     }
 
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        //add header
-        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
-        TextView tv = (TextView) v.findViewById(R.id.nbResults);
-        switch (model.shopList.size) {
-            case 0:
-                tv.setText("Aucun résultat");
-                break;
-            case 1:
-                tv.setText("1 résultat");
-                break;
-            default:
-                tv.setText(String.valueOf(model.shopList.size) + " résultats");
-                break;
-        }
-
-        this.getListView().addHeaderView(v);
-
         // initialize and set the list adapter
-
         synchronized (model.shopList) {
             mAdapter = new ShopListAdapter(getActivity(), model.shopList.items);
             mAdapter.setServerListSize(model.shopList.size);
@@ -156,6 +141,12 @@ public class ShopListViewFragment extends ListFragment {
                 }
             }
         }
+
+        //add header
+        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
+        headertv = (TextView) v.findViewById(R.id.nbResults);
+        updateHeader();
+        this.getListView().addHeaderView(headertv);
     }
 
     @Override
@@ -184,8 +175,27 @@ public class ShopListViewFragment extends ListFragment {
 
         if (getListView() != null) {
             getListView().setSelectionFromTop(index, top);
+            updateHeader();
         }
     }
+
+    private void updateHeader(){
+        switch (model.shopList.size) {
+            case -1:
+                headertv.setText(R.string.Loading);
+                break;
+            case 0:
+                headertv.setText(R.string.no_result);
+                break;
+            case 1:
+                headertv.setText(R.string.one_result);
+                break;
+            default:
+                headertv.setText(String.format("%d résultats", model.shopList.size));
+                break;
+        }
+    }
+
 
     public void onEvent(SelectionChangedEvent event) {
         synchronized (model.shopList) {

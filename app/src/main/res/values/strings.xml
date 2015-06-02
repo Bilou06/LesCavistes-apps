@@ -27,9 +27,10 @@
     <string name="impossible_to_draw_path">Impossible d\'afficher le chemin, merci de réessayer plus tard</string>
     <string name="no_result">Aucun résultat</string>
     <string name="one_result">1 résultat</string>
-    <string name="results">" résultats"</string>
+    <string name="results">"%d résultats"</string>
     <string name="from_to" formatted="false">de %1 à %2</string>
     <string name="chose_wine">Choisissez un vin</string>
     <string name="ok">Ok</string>
     <string name="cancel">Annuler</string>
+    <string name="Loading">Chargement</string>
 </resources>

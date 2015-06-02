@@ -5,12 +5,10 @@ package fr.lescavistes.lescavistes.utils;
  */
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.List;
@@ -141,7 +139,7 @@ public abstract class GenericAdapter<T> extends ArrayAdapter<T> {
      */
     public View getFooterView(int position, View convertView,
                               ViewGroup parent) {
-        if (position >= serverListSize && serverListSize > 0) {
+        if (position >= serverListSize && serverListSize > -1) {
             // the ListView has reached the last row
             TextView tvLastRow = new TextView(mActivity);
             tvLastRow.setHint(mActivity.getString(R.string.End));
@@ -152,7 +150,7 @@ public abstract class GenericAdapter<T> extends ArrayAdapter<T> {
         View row = convertView;
         if (row == null) {
             row = mActivity.getLayoutInflater().inflate(
-                    R.layout.listview_shop_progress, parent, false);
+                    R.layout.listview_progress, parent, false);
         }
 
         return row;

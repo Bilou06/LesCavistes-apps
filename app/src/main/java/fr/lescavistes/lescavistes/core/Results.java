@@ -14,7 +14,7 @@ public class Results<T> implements Serializable{
 
     public Results(){
         this.items=new ArrayList<T>();
-        this.size=0;
+        this.size=-1;
         this.selected=0;
     }
 

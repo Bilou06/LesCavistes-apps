@@ -30,6 +30,9 @@ public class WineListViewFragment extends ListFragment {
     private Model model;
     private WineListAdapter mAdapter;
 
+    private TextView headertv;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,7 @@ public class WineListViewFragment extends ListFragment {
                 ((DisplayShopInfoActivity) getActivity()).loadMoreDataFromApi(totalItemsCount - 2);
             }
         });
-        if(model.getWineList().size==0)
+        if(model.getWineList().size<1)
             ((DisplayShopInfoActivity) getActivity()).loadMoreDataFromApi(0);
     }
 
@@ -90,19 +93,8 @@ public class WineListViewFragment extends ListFragment {
 
         //add header
         View v = getActivity().getLayoutInflater().inflate(R.layout.listview_wine_header, null);
-        TextView tv = (TextView) v.findViewById(R.id.nbResults);
-        Shop shop = model.shopList.getSelected();
-        switch (shop.getNbReferences()) {
-            case 0:
-                tv.setText(getActivity().getString(R.string.no_result));
-                break;
-            case 1:
-                tv.setText(getActivity().getString(R.string.one_result));
-                break;
-            default:
-                tv.setText(String.valueOf(shop.getNbReferences()) + getActivity().getString(R.string.results));
-                break;
-        }
+        headertv = (TextView) v.findViewById(R.id.nbResults);
+        updateHeader();
         try {
             this.getListView().addHeaderView(v);
         }
@@ -148,6 +140,25 @@ public class WineListViewFragment extends ListFragment {
 
         if (getListView() != null) {
             getListView().setSelectionFromTop(index, top);
+            updateHeader();
+        }
+    }
+
+    private void updateHeader(){
+        Shop shop = model.shopList.getSelected();
+        switch (shop.getNbReferences()) {
+            case -1:
+                headertv.setText(R.string.Loading);
+                break;
+            case 0:
+                headertv.setText(R.string.no_result);
+                break;
+            case 1:
+                headertv.setText(R.string.one_result);
+                break;
+            default:
+                headertv.setText(String.format(getActivity().getString(R.string.results), shop.getNbReferences()));
+                break;
         }
     }
 
