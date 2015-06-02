@@ -17,16 +17,20 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationServices;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
@@ -43,6 +47,7 @@ import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.persistent.RequestsContract;
 import fr.lescavistes.lescavistes.persistent.RequestsContractDbHepler;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
@@ -84,17 +89,67 @@ public class SearchActivity extends AppCompatActivity implements
 
         model = MainApplication.getModel();
 
-        if (model.getWhat() != null && model.getWhat().length() != 0){
+        if (model.getWhat() != null && model.getWhat().length() != 0) {
             EditText what = (EditText) findViewById(R.id.query_what);
             what.setText(model.getWhat());
         }
 
-        if (model.where != null && model.where.length() != 0){
+        if (model.where != null && model.where.length() != 0) {
             EditText what = (EditText) findViewById(R.id.query_where);
             what.setText(model.where);
         }
 
         processingRequest = false;
+
+        makeButtons();
+    }
+
+    private void makeButtons() {
+        // do db queries in another thread
+        new AsyncTask<Void, Void, Cursor>() {
+
+            @Override
+            protected Cursor doInBackground(Void... voids) {
+                RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
+                final Cursor c = dbHepler.getQueries();
+
+                return c;
+            }
+
+            @Override
+            protected void onPostExecute(Cursor c) {
+                if(c.moveToFirst()) {
+                    LinearLayout root = (LinearLayout) findViewById(R.id.buttons);
+                    for (int i = 0; i < root.getChildCount(); i++) {
+                        LinearLayout line = (LinearLayout) root.getChildAt(i);
+                        for (int j = 0; j < line.getChildCount(); j++) {
+                            View v = line.getChildAt(j);
+                            if (v instanceof Button) {
+                                Button b = (Button) v;
+                                if (!c.isNull(c.getPosition())) {
+                                    b.setText(c.getString(c.getColumnIndex(RequestsContract.RequestWhat.COLUMN_NAME_QUERY)));
+                                    b.setVisibility(View.VISIBLE);
+                                    b.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            Button b = (Button) v;
+                                            String query = b.getText().toString();
+
+                                            EditText what = (EditText) findViewById(R.id.query_what);
+                                            what.setText(query);
+                                        }
+                                    });
+                                    if(!c.moveToNext())
+                                        return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }.execute();
+
+
     }
 
     /**
@@ -144,7 +199,6 @@ public class SearchActivity extends AppCompatActivity implements
         Log.i(TAG, "Connection suspended");
         mGoogleApiClient.connect();
     }
-
 
 
     /**
@@ -212,13 +266,13 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.getWhat() +"&c=0";
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.getWhat() + "&c=0";
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
                     @Override
                     public void onResponse(JSONArray response) {
-                        processingRequest=false;
+                        processingRequest = false;
 
                         try {
                             synchronized (model.shopList) {
@@ -246,7 +300,7 @@ public class SearchActivity extends AppCompatActivity implements
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                processingRequest=false;
+                processingRequest = false;
                 if (error instanceof TimeoutError || error instanceof AuthFailureError || error instanceof ServerError || error instanceof ParseError) {
                     Toast.makeText(getApplicationContext(),
                             "Le site est en maintenance. Merci de réessayer dans quelques minutes",
@@ -259,7 +313,7 @@ public class SearchActivity extends AppCompatActivity implements
             }
         });
         // Add the request to the RequestQueue.
-        if(!processingRequest)
+        if (!processingRequest)
             MainApplication.getInstance().getRequestQueue().add(jsonRequest);
         processingRequest = true;
 
