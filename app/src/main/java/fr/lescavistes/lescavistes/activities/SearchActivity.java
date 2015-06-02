@@ -25,8 +25,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,6 +45,7 @@ import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.core.ProposedWines;
 import fr.lescavistes.lescavistes.persistent.RequestsContract;
 import fr.lescavistes.lescavistes.persistent.RequestsContractDbHepler;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
@@ -105,6 +104,8 @@ public class SearchActivity extends AppCompatActivity implements
     }
 
     private void makeButtons() {
+
+        // most used on the device
         // do db queries in another thread
         new AsyncTask<Void, Void, Cursor>() {
 
@@ -118,8 +119,8 @@ public class SearchActivity extends AppCompatActivity implements
 
             @Override
             protected void onPostExecute(Cursor c) {
-                if(c.moveToFirst()) {
-                    LinearLayout root = (LinearLayout) findViewById(R.id.buttons);
+                if (c.moveToFirst()) {
+                    LinearLayout root = (LinearLayout) findViewById(R.id.most_used_buttons);
                     for (int i = 0; i < root.getChildCount(); i++) {
                         LinearLayout line = (LinearLayout) root.getChildAt(i);
                         for (int j = 0; j < line.getChildCount(); j++) {
@@ -139,7 +140,7 @@ public class SearchActivity extends AppCompatActivity implements
                                             what.setText(query);
                                         }
                                     });
-                                    if(!c.moveToNext())
+                                    if (!c.moveToNext())
                                         return;
                                 }
                             }
@@ -148,6 +149,36 @@ public class SearchActivity extends AppCompatActivity implements
                 }
             }
         }.execute();
+
+        //proposed by the application
+        String[] proposed = ProposedWines.wines;
+        int index = 0;
+
+        LinearLayout root = (LinearLayout) findViewById(R.id.proposed_buttons);
+        for (int i = 0; i < root.getChildCount(); i++) {
+            LinearLayout line = (LinearLayout) root.getChildAt(i);
+            for (int j = 0; j < line.getChildCount(); j++) {
+                View v = line.getChildAt(j);
+                if (v instanceof Button) {
+                    Button b = (Button) v;
+                    b.setText(proposed[index]);
+                    index++;
+                    b.setVisibility(View.VISIBLE);
+                    b.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Button b = (Button) v;
+                            String query = b.getText().toString();
+
+                            EditText what = (EditText) findViewById(R.id.query_what);
+                            what.setText(query);
+                        }
+                    });
+                    if (index >= proposed.length)
+                        return;
+                }
+            }
+        }
 
 
     }

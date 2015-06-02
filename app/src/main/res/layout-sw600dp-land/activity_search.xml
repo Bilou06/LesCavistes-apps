@@ -68,6 +68,9 @@
 
                 <Button style="@style/userTipsButton" />
                 <Button style="@style/userTipsButton" />
+                <Button style="@style/userTipsButton" />
+                <Button style="@style/userTipsButton" />
+                <Button style="@style/userTipsButton" />
 
             </LinearLayout>
 
@@ -76,6 +79,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
+                <Button style="@style/userTipsButton" />
+                <Button style="@style/userTipsButton" />
+                <Button style="@style/userTipsButton" />
                 <Button style="@style/userTipsButton" />
                 <Button style="@style/userTipsButton" />
             </LinearLayout>
@@ -96,6 +102,9 @@
 
                 <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
 
             </LinearLayout>
 
@@ -106,13 +115,7 @@
 
                 <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
+                <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
             </LinearLayout>
@@ -122,6 +125,21 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
+                <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
                 <Button style="@style/proposedTipsButton"/>
             </LinearLayout>
