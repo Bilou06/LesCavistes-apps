@@ -190,8 +190,8 @@ public class DisplayShopListActivity extends AppCompatActivity
 
 
     private void search(String query) {
-        if (!model.what.equals(query)) {
-            model.what = query;
+        if (!model.getWhat().equals(query)) {
+            model.setWhat(query);
             model.shopList = new Results<Shop>();
             loadMoreDataFromApi(0);
         }
@@ -200,7 +200,7 @@ public class DisplayShopListActivity extends AppCompatActivity
     // Append more data into the adapter
     public void loadMoreDataFromApi(int offset) {
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.what + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.getWhat() + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 

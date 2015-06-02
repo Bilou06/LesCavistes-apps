@@ -140,8 +140,8 @@ public class WineListViewFragment extends ListFragment {
 
         if (getListView() != null) {
             getListView().setSelectionFromTop(index, top);
-            updateHeader();
         }
+        updateHeader();
     }
 
     private void updateHeader(){

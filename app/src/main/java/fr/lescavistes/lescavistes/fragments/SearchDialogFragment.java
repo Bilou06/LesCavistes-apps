@@ -48,7 +48,7 @@ public class SearchDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
         model = MainApplication.getModel();
-        query = model.what;
+        query = model.getWhat();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         // Get the layout inflater
@@ -67,8 +67,8 @@ public class SearchDialogFragment extends DialogFragment {
             }
         });
 
-        if(model.what.length() != 0)
-            searchET.setText(model.what);
+        if(model.getWhat().length() != 0)
+            searchET.setText(model.getWhat());
         builder.setView(v)
                 // Add action buttons
                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {

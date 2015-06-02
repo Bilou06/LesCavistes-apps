@@ -250,7 +250,7 @@ public class ShopListViewFragment extends ListFragment {
             viewHolder.tvDistance.setText(item.getDistance());
             viewHolder.tvAddress.setText(item.getAddress());
 
-            if (model.what.length() != 0) {
+            if (model.getWhat().length() != 0) {
                 switch (item.getNbReferences()) {
                     case 0:
                         viewHolder.tvNbReferences.setText(mActivity.getString(R.string.no_result));

@@ -43,6 +43,7 @@ import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.core.Model;
 import fr.lescavistes.lescavistes.core.Results;
 import fr.lescavistes.lescavistes.core.Shop;
+import fr.lescavistes.lescavistes.persistent.RequestsContractDbHepler;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
@@ -83,9 +84,9 @@ public class SearchActivity extends AppCompatActivity implements
 
         model = MainApplication.getModel();
 
-        if (model.what != null && model.what.length() != 0){
+        if (model.getWhat() != null && model.getWhat().length() != 0){
             EditText what = (EditText) findViewById(R.id.query_what);
-            what.setText(model.what);
+            what.setText(model.getWhat());
         }
 
         if (model.where != null && model.where.length() != 0){
@@ -154,7 +155,7 @@ public class SearchActivity extends AppCompatActivity implements
         final Intent intent = new Intent(this, DisplayShopListActivity.class);
 
         EditText editText = (EditText) findViewById(R.id.query_what);
-        model.what = editText.getText().toString();
+        model.setWhat(editText.getText().toString());
 
         editText = (EditText) findViewById(R.id.query_where);
         model.where = editText.getText().toString();
@@ -211,7 +212,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.what +"&c=0";
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.getWhat() +"&c=0";
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 
