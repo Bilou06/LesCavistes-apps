@@ -14,7 +14,7 @@ import fr.lescavistes.lescavistes.persistent.RequestsContract.RequestWhat;
  */
 public class RequestsContractDbHepler extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "Requests.db";
 
     public RequestsContractDbHepler(Context context) {
@@ -115,8 +115,7 @@ public class RequestsContractDbHepler extends SQLiteOpenHelper {
     private static final String SQL_CREATE_ENTRIES =
             "CREATE TABLE " + RequestWhat.TABLE_NAME + " (" +
                     RequestWhat._ID + " INTEGER PRIMARY KEY," +
-                    RequestWhat.COLUMN_NAME_WHAT_ID + TEXT_TYPE + COMMA_SEP +
-                    RequestWhat.COLUMN_NAME_QUERY + TEXT_TYPE + COMMA_SEP +
+                    RequestWhat.COLUMN_NAME_QUERY + TEXT_TYPE + COMMA_SEP +//the position of this column matters! it is used for an adapter
                     RequestWhat.COLUMN_NAME_COUNT + INTEGER_TYPE +
             " )";
 

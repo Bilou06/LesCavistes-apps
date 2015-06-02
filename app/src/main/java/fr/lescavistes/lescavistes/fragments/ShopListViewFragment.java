@@ -45,6 +45,7 @@ public class ShopListViewFragment extends ListFragment {
     EventBus bus = EventBus.getDefault();
     private Model model;
     private ShopListAdapter mAdapter;
+    boolean viewCreated, refreshRequested;
 
     private TextView headertv;
 
@@ -66,6 +67,8 @@ public class ShopListViewFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        refreshRequested = false;
+        viewCreated = false;
         model = MainApplication.getModel();
         bus.register(this);
     }
@@ -90,6 +93,10 @@ public class ShopListViewFragment extends ListFragment {
                 ((DisplayShopListActivity) getActivity()).loadMoreDataFromApi(totalItemsCount - 2);
             }
         });
+
+        viewCreated = true;
+        if(refreshRequested)
+            refresh();
     }
 
     @Override
@@ -160,6 +167,10 @@ public class ShopListViewFragment extends ListFragment {
 
     public void refresh() {
 
+        if(!viewCreated) {
+            refreshRequested = true;
+            return;
+        }
         int index = 0;
         int top = 0;
         if (getListView() != null) {
@@ -177,6 +188,8 @@ public class ShopListViewFragment extends ListFragment {
             getListView().setSelectionFromTop(index, top);
             updateHeader();
         }
+
+        refreshRequested=false;
     }
 
     private void updateHeader(){

@@ -20,7 +20,7 @@
         android:layout_marginTop="9dp"
         android:padding="5dp">
 
-        <EditText
+        <AutoCompleteTextView
             android:id="@+id/query_what"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
