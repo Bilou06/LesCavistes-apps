@@ -23,11 +23,14 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FilterQueryProvider;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -48,6 +51,7 @@ import fr.lescavistes.lescavistes.core.Shop;
 import fr.lescavistes.lescavistes.core.ProposedWines;
 import fr.lescavistes.lescavistes.persistent.RequestsContract;
 import fr.lescavistes.lescavistes.persistent.RequestsContractDbHepler;
+import fr.lescavistes.lescavistes.utils.FilterCursorWrapper;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
 
 
@@ -89,8 +93,43 @@ public class SearchActivity extends AppCompatActivity implements
         model = MainApplication.getModel();
 
         if (model.getWhat() != null && model.getWhat().length() != 0) {
-            EditText what = (EditText) findViewById(R.id.query_what);
+            final AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
             what.setText(model.getWhat());
+
+            // do db queries in another thread
+            new AsyncTask<Void, Void, Cursor>() {
+
+                @Override
+                protected Cursor doInBackground(Void... voids) {
+                    RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
+                    final Cursor c = dbHepler.getMostRecentQueries();
+
+                    return c;
+                }
+
+                @Override
+                protected void onPostExecute(Cursor c) {
+                    SimpleCursorAdapter adapter = new SimpleCursorAdapter(MainApplication.getInstance(),
+                            android.R.layout.simple_spinner_dropdown_item,
+                            c,
+                            new String[]{RequestsContract.RequestWhat.COLUMN_NAME_QUERY},
+                            new int[] { android.R.id.text1});
+
+                    adapter.setCursorToStringConverter(null);
+                    adapter.setStringConversionColumn(1);
+
+                    adapter.setFilterQueryProvider(new FilterQueryProvider() {
+                        public Cursor runQuery(CharSequence str) {
+                            RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
+                            return new FilterCursorWrapper(dbHepler.getMostRecentQueries(), str.toString(), 1);
+                        }
+                    });
+
+                    what.setAdapter(adapter);
+                }
+            }.execute();
+
+
         }
 
         if (model.where != null && model.where.length() != 0) {
@@ -112,7 +151,7 @@ public class SearchActivity extends AppCompatActivity implements
             @Override
             protected Cursor doInBackground(Void... voids) {
                 RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
-                final Cursor c = dbHepler.getQueries();
+                final Cursor c = dbHepler.getMostUsedQueries();
 
                 return c;
             }
@@ -136,7 +175,7 @@ public class SearchActivity extends AppCompatActivity implements
                                             Button b = (Button) v;
                                             String query = b.getText().toString();
 
-                                            EditText what = (EditText) findViewById(R.id.query_what);
+                                            AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
                                             what.setText(query);
                                         }
                                     });
@@ -170,7 +209,7 @@ public class SearchActivity extends AppCompatActivity implements
                             Button b = (Button) v;
                             String query = b.getText().toString();
 
-                            EditText what = (EditText) findViewById(R.id.query_what);
+                            AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
                             what.setText(query);
                         }
                     });
@@ -239,11 +278,11 @@ public class SearchActivity extends AppCompatActivity implements
 
         final Intent intent = new Intent(this, DisplayShopListActivity.class);
 
-        EditText editText = (EditText) findViewById(R.id.query_what);
+        AutoCompleteTextView editText = (AutoCompleteTextView) findViewById(R.id.query_what);
         model.setWhat(editText.getText().toString());
 
-        editText = (EditText) findViewById(R.id.query_where);
-        model.where = editText.getText().toString();
+        EditText editText2 = (EditText) findViewById(R.id.query_where);
+        model.where = editText2.getText().toString();
 
         // if empty, use current location
         if (model.where.length() == 0) {

@@ -13,5 +13,6 @@ public final class RequestsContract {
         public static final String TABLE_NAME = "what_request";
         public static final String COLUMN_NAME_QUERY = "query";
         public static final String COLUMN_NAME_COUNT = "count";
+        public static final String COLUMN_NAME_DATE = "last_date";
     }
 }

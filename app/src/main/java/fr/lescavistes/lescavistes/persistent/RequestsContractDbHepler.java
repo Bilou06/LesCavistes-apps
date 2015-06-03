@@ -14,7 +14,7 @@ import fr.lescavistes.lescavistes.persistent.RequestsContract.RequestWhat;
  */
 public class RequestsContractDbHepler extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "Requests.db";
 
     public RequestsContractDbHepler(Context context) {
@@ -36,7 +36,7 @@ public class RequestsContractDbHepler extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public Cursor getQueries(){
+    public Cursor getMostUsedQueries(){
         SQLiteDatabase db = getReadableDatabase();
 
         String[] projection ={
@@ -47,6 +47,59 @@ public class RequestsContractDbHepler extends SQLiteOpenHelper {
 
         String sortOrder =
                 RequestWhat.COLUMN_NAME_COUNT + " DESC";
+
+        Cursor c = db.query(
+                RequestWhat.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                sortOrder
+        );
+
+        return c;
+    }
+
+    public Cursor getMostRecentQueries(String filter){
+        SQLiteDatabase db = getReadableDatabase();
+
+        String[] projection ={
+                RequestWhat._ID,
+                RequestWhat.COLUMN_NAME_QUERY,
+                RequestWhat.COLUMN_NAME_DATE
+        };
+
+        String sortOrder =
+                RequestWhat.COLUMN_NAME_DATE + " DESC";
+
+        String selection = RequestWhat.COLUMN_NAME_QUERY + " LIKE?";
+        String[] selectionArgs = {'%'+filter+'%'};
+
+        Cursor c = db.query(
+                RequestWhat.TABLE_NAME,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+
+        return c;
+    }
+
+    public Cursor getMostRecentQueries(){
+        SQLiteDatabase db = getReadableDatabase();
+
+        String[] projection ={
+                RequestWhat._ID,
+                RequestWhat.COLUMN_NAME_QUERY,
+                RequestWhat.COLUMN_NAME_DATE
+        };
+
+        String sortOrder =
+                RequestWhat.COLUMN_NAME_DATE + " DESC";
 
         Cursor c = db.query(
                 RequestWhat.TABLE_NAME,
@@ -85,6 +138,8 @@ public class RequestsContractDbHepler extends SQLiteOpenHelper {
         );
 
         ContentValues values = new ContentValues();
+        values.put(RequestWhat.COLUMN_NAME_DATE, System.currentTimeMillis());
+
         if(c.moveToFirst()){
             //update
             values.put(RequestWhat.COLUMN_NAME_COUNT, c.getLong(c.getColumnIndex(RequestWhat.COLUMN_NAME_COUNT))+1);
@@ -116,7 +171,8 @@ public class RequestsContractDbHepler extends SQLiteOpenHelper {
             "CREATE TABLE " + RequestWhat.TABLE_NAME + " (" +
                     RequestWhat._ID + " INTEGER PRIMARY KEY," +
                     RequestWhat.COLUMN_NAME_QUERY + TEXT_TYPE + COMMA_SEP +//the position of this column matters! it is used for an adapter
-                    RequestWhat.COLUMN_NAME_COUNT + INTEGER_TYPE +
+                    RequestWhat.COLUMN_NAME_COUNT + INTEGER_TYPE + COMMA_SEP +
+                    RequestWhat.COLUMN_NAME_DATE + INTEGER_TYPE +
             " )";
 
     private static final String SQL_DELETE_ENTRIES =
