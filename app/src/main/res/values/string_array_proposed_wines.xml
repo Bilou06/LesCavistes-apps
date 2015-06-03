@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array  name="string_array_proposed_wines">
+        <item>Champagne</item>
+        <item>Bordeaux</item>
+        <item>Côtes du Rhone</item>
+        <item>Bourgogne</item>
+        <item>Anjou</item>
+        <item>Saint-Emilion</item>
+        <item>Côtes de Blaye</item>
+        <item>Saumur</item>
+        <item>Bellet</item>
+        <item>Jaune</item>
+        <item>Chili</item>
+        <item>Italie</item>
+        <item>Espagne</item>
+        <item>Australie</item>
+        <item>Afrique du Sud</item>
+        <item>Gamay</item>
+        <item>Syrah</item>
+        <item>Gewurztraminer</item>
+        <item>Sauvignon</item>
+        <item>Chardonnay</item>
+    </string-array>
+</resources>

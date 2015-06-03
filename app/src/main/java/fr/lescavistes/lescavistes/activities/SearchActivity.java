@@ -25,6 +25,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
@@ -192,7 +193,7 @@ public class SearchActivity extends AppCompatActivity implements
         }.execute();
 
         //proposed by the application
-        String[] proposed = ProposedWines.wines;
+        String[] proposed = getResources().getStringArray(R.array.string_array_proposed_wines);//ProposedWines.wines;
         int index = 0;
 
         LinearLayout root = (LinearLayout) findViewById(R.id.proposed_buttons);
