@@ -95,50 +95,48 @@ public class SearchActivity extends AppCompatActivity implements
 
         model = MainApplication.getModel();
 
-        if (model.getWhat() != null && model.getWhat().length() != 0) {
-            final AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
-            what.setText(model.getWhat());
-            what.setThreshold(1);
 
-            // do db queries in another thread
-            new AsyncTask<Void, Void, Cursor>() {
+        final AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
+        what.setText(model.getWhat());
+        what.setThreshold(1);
 
-                @Override
-                protected Cursor doInBackground(Void... voids) {
-                    RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
-                    final Cursor c = dbHepler.getMostRecentQueries();
+        // do db queries in another thread
+        new AsyncTask<Void, Void, Cursor>() {
 
-                    return c;
-                }
+            @Override
+            protected Cursor doInBackground(Void... voids) {
+                RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
+                final Cursor c = dbHepler.getMostRecentQueries();
 
-                @Override
-                protected void onPostExecute(Cursor c) {
-                    SimpleCursorAdapter adapter = new SimpleCursorAdapter(MainApplication.getInstance(),
-                            R.layout.spinner_dropdown_item,
-                            c,
-                            new String[]{RequestsContract.RequestWhat.COLUMN_NAME_QUERY},
-                            new int[] { R.id.text1});
+                return c;
+            }
 
-                    adapter.setCursorToStringConverter(null);
-                    adapter.setStringConversionColumn(1);
+            @Override
+            protected void onPostExecute(Cursor c) {
+                SimpleCursorAdapter adapter = new SimpleCursorAdapter(MainApplication.getInstance(),
+                        R.layout.spinner_dropdown_item,
+                        c,
+                        new String[]{RequestsContract.RequestWhat.COLUMN_NAME_QUERY},
+                        new int[]{R.id.text1});
 
-                    adapter.setFilterQueryProvider(new FilterQueryProvider() {
-                        public Cursor runQuery(CharSequence str) {
-                            RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
-                            return new FilterCursorWrapper(dbHepler.getMostRecentQueries(), str.toString(), 1);
-                        }
-                    });
+                adapter.setCursorToStringConverter(null);
+                adapter.setStringConversionColumn(1);
 
-                    what.setAdapter(adapter);
-                }
-            }.execute();
+                adapter.setFilterQueryProvider(new FilterQueryProvider() {
+                    public Cursor runQuery(CharSequence str) {
+                        RequestsContractDbHepler dbHepler = new RequestsContractDbHepler(MainApplication.getInstance());
+                        return new FilterCursorWrapper(dbHepler.getMostRecentQueries(), str.toString(), 1);
+                    }
+                });
 
+                what.setAdapter(adapter);
+            }
+        }.execute();
 
-        }
 
         if (model.where != null && model.where.length() != 0) {
-            EditText what = (EditText) findViewById(R.id.query_where);
-            what.setText(model.where);
+            EditText where = (EditText) findViewById(R.id.query_where);
+            where.setText(model.where);
         }
 
         processingRequest = false;
