@@ -94,7 +94,11 @@ public class ShopListViewFragment extends ListFragment {
         });
 
 
-
+        //add header
+        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
+        headertv = (TextView) v.findViewById(R.id.nbResults);
+        updateHeader();
+        getListView().addHeaderView(headertv);
 
         // initialize and set the list adapter
         synchronized (model.shopList) {
@@ -118,11 +122,7 @@ public class ShopListViewFragment extends ListFragment {
         }
 
 
-        //add header
-        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
-        headertv = (TextView) v.findViewById(R.id.nbResults);
-        updateHeader();
-        getListView().addHeaderView(headertv);
+
 
 
         viewCreated = true;
