@@ -40,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,6 +54,8 @@ import fr.lescavistes.lescavistes.persistent.RequestsContract;
 import fr.lescavistes.lescavistes.persistent.RequestsContractDbHepler;
 import fr.lescavistes.lescavistes.utils.FilterCursorWrapper;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
+
+import static android.text.Html.toHtml;
 
 
 public class SearchActivity extends AppCompatActivity implements
@@ -95,6 +98,7 @@ public class SearchActivity extends AppCompatActivity implements
         if (model.getWhat() != null && model.getWhat().length() != 0) {
             final AutoCompleteTextView what = (AutoCompleteTextView) findViewById(R.id.query_what);
             what.setText(model.getWhat());
+            what.setThreshold(1);
 
             // do db queries in another thread
             new AsyncTask<Void, Void, Cursor>() {
@@ -110,10 +114,10 @@ public class SearchActivity extends AppCompatActivity implements
                 @Override
                 protected void onPostExecute(Cursor c) {
                     SimpleCursorAdapter adapter = new SimpleCursorAdapter(MainApplication.getInstance(),
-                            android.R.layout.simple_spinner_dropdown_item,
+                            R.layout.spinner_dropdown_item,
                             c,
                             new String[]{RequestsContract.RequestWhat.COLUMN_NAME_QUERY},
-                            new int[] { android.R.id.text1});
+                            new int[] { R.id.text1});
 
                     adapter.setCursorToStringConverter(null);
                     adapter.setStringConversionColumn(1);
@@ -336,7 +340,7 @@ public class SearchActivity extends AppCompatActivity implements
         }
 
         // Request the shop list from the url.
-        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + model.getWhat() + "&c=0";
+        String get_url = MainApplication.baseUrl() + "getwineshops/?format=json&lat=" + model.getLat() + "&lng=" + model.getLng() + "&q=" + URLEncoder.encode(model.getWhat()) + "&c=0";
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 

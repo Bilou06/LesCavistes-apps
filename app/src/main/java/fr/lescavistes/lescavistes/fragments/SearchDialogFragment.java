@@ -9,14 +9,11 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AlertDialog;
-import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.Filter;
 import android.widget.FilterQueryProvider;
-import android.widget.Toast;
 
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
@@ -60,9 +57,11 @@ public class SearchDialogFragment extends DialogFragment {
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        View v = inflater.inflate(R.layout.search_dialog_fragment, null);
+        View v = inflater.inflate(R.layout.fragment_search_dialog, null);
 
         final AutoCompleteTextView searchET = (AutoCompleteTextView) v.findViewById(R.id.query_what);
+        searchET.setText(model.getWhat());
+        searchET.setThreshold(1);
         // do db queries in another thread
         new AsyncTask<Void, Void, Cursor>() {
 
@@ -75,10 +74,10 @@ public class SearchDialogFragment extends DialogFragment {
             @Override
             protected void onPostExecute(final Cursor c) {
                 SimpleCursorAdapter adapter = new SimpleCursorAdapter(MainApplication.getInstance(),
-                        android.R.layout.simple_spinner_dropdown_item,
+                        R.layout.spinner_dropdown_item,
                         c,
                         new String[]{RequestsContract.RequestWhat.COLUMN_NAME_QUERY},
-                        new int[] { android.R.id.text1});
+                        new int[] { R.id.text1});
 
                 adapter.setCursorToStringConverter(null);
                 adapter.setStringConversionColumn(1);
@@ -89,6 +88,7 @@ public class SearchDialogFragment extends DialogFragment {
                         return new FilterCursorWrapper(dbHepler.getMostRecentQueries(), str.toString(), 1);
                     }
                 });
+
 
                 searchET.setAdapter(adapter);
             }

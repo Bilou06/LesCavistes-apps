@@ -26,6 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 import fr.lescavistes.lescavistes.MainApplication;
@@ -38,6 +39,8 @@ import fr.lescavistes.lescavistes.fragments.ShopInfoGotoViewFragment;
 import fr.lescavistes.lescavistes.fragments.ShopInfoViewFragment;
 import fr.lescavistes.lescavistes.fragments.WineListViewFragment;
 import fr.lescavistes.lescavistes.utils.JSONObjectUtf8;
+
+import static android.text.Html.escapeHtml;
 
 
 /**
@@ -197,7 +200,7 @@ public class DisplayShopInfoActivity extends AppCompatActivity implements Search
     // Append more data into the adapter
     public void loadMoreDataFromApi(final int offset) {
         // Request the wine list from the url.
-        String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(model.shopList.getSelected().getId()) + "&q=" + model.getWhat() + "&c=" + String.valueOf(offset);
+        String get_url = MainApplication.baseUrl() + "getwines/?format=json&shop=" + String.valueOf(model.shopList.getSelected().getId()) + "&q=" + URLEncoder.encode(model.getWhat()) + "&c=" + String.valueOf(offset);
         JsonArrayRequest jsonRequest = new JsonArrayRequest(get_url,
                 new Response.Listener<JSONArray>() {
 

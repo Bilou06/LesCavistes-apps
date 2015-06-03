@@ -22,6 +22,8 @@ import com.android.volley.toolbox.ImageRequest;
 import com.google.android.gms.common.images.ImageManager;
 import com.squareup.picasso.Picasso;
 
+import java.net.URLEncoder;
+
 import fr.lescavistes.lescavistes.MainApplication;
 import fr.lescavistes.lescavistes.R;
 import fr.lescavistes.lescavistes.activities.DisplayShopInfoActivity;
@@ -33,27 +35,26 @@ import fr.lescavistes.lescavistes.core.Shop;
 public class ShopInfoViewFragment extends Fragment {
 
     private String TAG = "ShopInfoViewFragment";
-    private Shop mShop;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View v = inflater.inflate(R.layout.fragment_info_shop, container, false);
 
-        mShop = MainApplication.getModel().shopList.getSelected();
+        Shop shop = MainApplication.getModel().shopList.getSelected();
 
         TextView tvTitle = (TextView) v.findViewById(R.id.tvTitle);
-        tvTitle.setText(mShop.getName());
+        tvTitle.setText(shop.getName());
 
         TextView tvDistance = (TextView) v.findViewById(R.id.tvDistance);
-        tvDistance.setText(String.valueOf(mShop.getDist()) + " km");
+        tvDistance.setText(String.valueOf(shop.getDist()) + " km");
 
         TextView tvAddress = (TextView) v.findViewById(R.id.tvAddress);
-        tvAddress.setText(mShop.getAddress());
+        tvAddress.setText(shop.getAddress());
 
         Button bMail = (Button) v.findViewById(R.id.bMail);
-        if (mShop.getEmail().length() != 0) {
-            bMail.setText(mShop.getEmail());
+        if (shop.getEmail().length() != 0) {
+            bMail.setText(shop.getEmail());
             bMail.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -70,8 +71,8 @@ public class ShopInfoViewFragment extends Fragment {
         }
 
         Button bPhone = (Button) v.findViewById(R.id.bTel);
-        if (mShop.getPhone().length() != 0) {
-            bPhone.setText(mShop.getPhone());
+        if (shop.getPhone().length() != 0) {
+            bPhone.setText(shop.getPhone());
             bPhone.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -87,8 +88,8 @@ public class ShopInfoViewFragment extends Fragment {
         }
 
         Button bWeb = (Button) v.findViewById(R.id.bWeb);
-        if (mShop.getWeb().length() != 0) {
-            bWeb.setText(mShop.getWeb());
+        if (shop.getWeb().length() != 0) {
+            bWeb.setText(shop.getWeb());
             bWeb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -106,11 +107,11 @@ public class ShopInfoViewFragment extends Fragment {
         }
 
         TextView tvDescription = (TextView) v.findViewById(R.id.tvDescription);
-        tvDescription.setText(mShop.getDescription());
+        tvDescription.setText(shop.getDescription());
 
         //get image from server
         final ImageView image = (ImageView) v.findViewById(R.id.ivImage);
-        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(mShop.getId())+'/'+getDPI()+'/'+mShop.getImg();
+        String get_url = MainApplication.baseUrl() + "getwineshopimage/" + String.valueOf(shop.getId())+'/'+getDPI()+'/'+ URLEncoder.encode(shop.getImg());
         Picasso.with(getActivity())
                 .load(get_url)
                 .placeholder(R.attr.indeterminateProgressStyle)

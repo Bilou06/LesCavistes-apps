@@ -43,10 +43,9 @@ public class ShopListViewFragment extends ListFragment {
 
     OnShopSelectedListener mCallback;
     EventBus bus = EventBus.getDefault();
+    boolean viewCreated, refreshRequested;
     private Model model;
     private ShopListAdapter mAdapter;
-    boolean viewCreated, refreshRequested;
-
     private TextView headertv;
 
     @Override
@@ -94,8 +93,40 @@ public class ShopListViewFragment extends ListFragment {
             }
         });
 
+
+
+
+        // initialize and set the list adapter
+        synchronized (model.shopList) {
+            mAdapter = new ShopListAdapter(getActivity(), model.shopList.items);
+            mAdapter.setServerListSize(model.shopList.size);
+            mAdapter.selectedItem(model.shopList.selected);
+            setListAdapter(mAdapter);
+
+
+            // select the element
+            int selected = model.shopList.selected;
+            if (selected > -1 && selected < model.shopList.items.size()) {
+                Shop selectedItem = model.shopList.items.get(selected);
+                if (selectedItem != null) {
+                    getListView().setSelection(selected);
+                    getListView().setItemChecked(selected, true);
+                    getListView().getAdapter().getView(selected, null, null).setSelected(true);
+                    getListView().requestFocus();
+                }
+            }
+        }
+
+
+        //add header
+        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
+        headertv = (TextView) v.findViewById(R.id.nbResults);
+        updateHeader();
+        getListView().addHeaderView(headertv);
+
+
         viewCreated = true;
-        if(refreshRequested)
+        if (refreshRequested)
             refresh();
     }
 
@@ -128,32 +159,7 @@ public class ShopListViewFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // initialize and set the list adapter
-        synchronized (model.shopList) {
-            mAdapter = new ShopListAdapter(getActivity(), model.shopList.items);
-            mAdapter.setServerListSize(model.shopList.size);
-            mAdapter.selectedItem(model.shopList.selected);
-            setListAdapter(mAdapter);
 
-
-            // select the element
-            int selected = model.shopList.selected;
-            if (selected > -1 && selected < model.shopList.items.size()) {
-                Shop selectedItem = model.shopList.items.get(selected);
-                if (selectedItem != null) {
-                    getListView().setSelection(selected);
-                    getListView().setItemChecked(selected, true);
-                    getListView().getAdapter().getView(selected, null, null).setSelected(true);
-                    getListView().requestFocus();
-                }
-            }
-        }
-
-        //add header
-        View v = getActivity().getLayoutInflater().inflate(R.layout.listview_shop_header, null);
-        headertv = (TextView) v.findViewById(R.id.nbResults);
-        updateHeader();
-        this.getListView().addHeaderView(headertv);
     }
 
     @Override
@@ -167,7 +173,7 @@ public class ShopListViewFragment extends ListFragment {
 
     public void refresh() {
 
-        if(!viewCreated) {
+        if (!viewCreated) {
             refreshRequested = true;
             return;
         }
@@ -189,10 +195,10 @@ public class ShopListViewFragment extends ListFragment {
             updateHeader();
         }
 
-        refreshRequested=false;
+        refreshRequested = false;
     }
 
-    private void updateHeader(){
+    private void updateHeader() {
         switch (model.shopList.size) {
             case -1:
                 headertv.setText(R.string.Loading);
